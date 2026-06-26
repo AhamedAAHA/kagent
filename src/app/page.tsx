@@ -201,7 +201,7 @@ export default function HomePage() {
                 fontWeight: 700,
               }}
             >
-              WHAT'S<br />
+              WHAT&apos;S<br />
               <span className="text-gradient">HAPPENING</span><br />
               IN YOUR LIFE?
             </motion.h1>
@@ -404,7 +404,7 @@ export default function HomePage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-faint)' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
-                  <p className="font-mono-custom" style={{ fontSize: 10, letterSpacing: '0.15em' }}>TELL KAGENT WHAT'S HAPPENING</p>
+                  <p className="font-mono-custom" style={{ fontSize: 10, letterSpacing: '0.15em' }}>TELL KAGENT WHAT&apos;S HAPPENING</p>
                 </div>
               </div>
             )}
