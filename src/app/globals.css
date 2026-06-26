@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Syncopate:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #04020C;
+  --surface: #0D0A1A;
+  --surface2: #150F24;
+  --purple: #7C3AED;
+  --purple-light: #A78BFA;
+  --gold: #D97706;
+  --gold-light: #FCD34D;
+  --teal: #0F766E;
+  --emerald: #34D399;
+  --border: rgba(255,255,255,0.07);
+  --border-accent: rgba(124,58,237,0.25);
+  --text: #F0EEF8;
+  --text-muted: rgba(240,238,248,0.45);
+  --text-faint: rgba(240,238,248,0.18);
+  --grain-opacity: 0.08;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 2px; }
+
+/* ─── Syncopate headings ─── */
+.font-syncopate { font-family: 'Syncopate', sans-serif; }
+.font-mono-custom { font-family: 'JetBrains Mono', monospace; }
+
+/* ─── Grain overlay ─── */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  opacity: var(--grain-opacity);
+  filter: url(#grain);
+}
+
+/* ─── Glass ─── */
+.glass {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.glass-strong {
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* ─── 3D perspective util ─── */
+.perspective-2000 {
+  perspective: 2000px;
+  overflow: hidden;
+}
+
+/* ─── Gradient text ─── */
+.text-gradient {
+  background: linear-gradient(135deg, #C4B5FD 0%, #7C3AED 40%, #FCD34D 80%, #D97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-gold {
+  background: linear-gradient(120deg, #FCD34D, #D97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Agent pulse animation ─── */
+@keyframes agentPulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* ─── Scroll line ─── */
+@keyframes scrollFlow {
+  0%   { transform: scaleY(0); transform-origin: top; opacity: 1; }
+  49%  { transform: scaleY(1); transform-origin: top; opacity: 1; }
+  50%  { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+  100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+}
+.scroll-line {
+  animation: scrollFlow 2.2s ease-in-out infinite;
+}
+
+/* ─── Typing indicator ─── */
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.2; }
+  40% { opacity: 1; }
+}
+.typing-dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--purple-light);
+  margin: 0 2px;
+  animation: blink 1.4s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* ─── Chat bubbles ─── */
+.bubble-user {
+  background: linear-gradient(135deg, #7C3AED, #5B21B6);
+  border-radius: 20px 20px 4px 20px;
+}
+.bubble-agent {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px 20px 20px 4px;
+}
+
+/* ─── Product card ─── */
+.product-card {
+  transition: transform 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.product-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(124,58,237,0.45);
+  box-shadow: 0 12px 32px rgba(124,58,237,0.18);
+}
+
+/* ─── Bundle tiers ─── */
+.tier-budget   { background: rgba(5,150,105,0.12); border-color: rgba(5,150,105,0.35); color: #34D399; }
+.tier-midrange { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.35); color: #A78BFA; }
+.tier-premium  { background: rgba(217,119,6,0.12); border-color: rgba(217,119,6,0.35); color: #FCD34D; }
+
+/* ─── Festival banner glow ─── */
+@keyframes festivalGlow {
+  0%, 100% { border-color: rgba(217,119,6,0.25); box-shadow: none; }
+  50% { border-color: rgba(217,119,6,0.6); box-shadow: 0 0 20px rgba(217,119,6,0.1); }
+}
+.festival-banner { animation: festivalGlow 2.4s ease-in-out infinite; }
+
+/* ─── CTA clip shape (Halide style) ─── */
+.cta-clip {
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 88% 100%, 0 100%);
+  transition: all 0.3s ease;
+}
+.cta-clip:hover { transform: translateY(-4px); }
+
+/* ─── Agent status ─── */
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 0 4px transparent; }
+}
+.status-thinking { animation: statusPulse 1s ease-in-out infinite; }
+
+/* ─── Reveal animations ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fadeUp 0.7s ease-out forwards; }
+.delay-100 { animation-delay: 0.1s; opacity: 0; }
+.delay-200 { animation-delay: 0.2s; opacity: 0; }
+.delay-300 { animation-delay: 0.3s; opacity: 0; }
+.delay-400 { animation-delay: 0.4s; opacity: 0; }
+.delay-500 { animation-delay: 0.5s; opacity: 0; }
+
+/* ─── Input focus glow ─── */
+.chat-input:focus {
+  outline: none;
+  border-color: rgba(124,58,237,0.55);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+}
