@@ -10,7 +10,7 @@ export function formatPrice(price: number): string {
 }
 
 export function generateId(): string {
-  return Math.random().toString(36).slice(2, 10);
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export function sleep(ms: number): Promise<void> {
