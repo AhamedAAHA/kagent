@@ -1,0 +1,13 @@
+{
+  "name": "KAgent — Sri Lanka AI Shopping",
+  "short_name": "KAgent",
+  "description": "Sri Lanka's AI Life Shopping Concierge — 7 agents, real products, instant plans",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04020C",
+  "theme_color": "#7C3AED",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
