@@ -1,11 +1,6 @@
 export type AgentName =
-  | 'concierge'
-  | 'life-event'
-  | 'memory'
-  | 'shopping'
-  | 'festival'
-  | 'budget'
-  | 'delivery';
+  | 'concierge' | 'life-event' | 'memory'
+  | 'shopping' | 'festival' | 'budget' | 'delivery';
 
 export type AgentStatus = 'idle' | 'thinking' | 'done' | 'error';
 
@@ -17,6 +12,7 @@ export interface Agent {
   description: string;
   status: AgentStatus;
   message?: string;
+  log?: string[];          // NEW: streaming log lines
 }
 
 export interface Product {
@@ -37,16 +33,9 @@ export interface Product {
 }
 
 export type ProductCategory =
-  | 'food'
-  | 'electronics'
-  | 'household'
-  | 'clothing'
-  | 'gifts'
-  | 'stationery'
-  | 'beauty'
-  | 'groceries'
-  | 'flowers'
-  | 'festival';
+  | 'food' | 'electronics' | 'household' | 'clothing'
+  | 'gifts' | 'stationery' | 'beauty' | 'groceries'
+  | 'flowers' | 'festival';
 
 export interface CartItem {
   product: Product;
@@ -95,6 +84,13 @@ export interface Festival {
   greeting: string;
 }
 
+export interface AgentDebateMessage {
+  agentId: AgentName;
+  content: string;
+  timestamp: Date;
+  type: 'statement' | 'objection' | 'agreement' | 'verdict';
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -103,6 +99,9 @@ export interface ChatMessage {
   agentActivity?: AgentActivity[];
   bundles?: ShoppingBundle[];
   products?: Product[];
+  debate?: AgentDebateMessage[];   // NEW
+  shopperDNA?: ShopperDNA;         // NEW
+  isSurprise?: boolean;            // NEW
 }
 
 export interface AgentActivity {
@@ -110,6 +109,7 @@ export interface AgentActivity {
   status: AgentStatus;
   message: string;
   timestamp: Date;
+  logLines?: string[];             // NEW: terminal log lines
 }
 
 export interface LifeEvent {
@@ -118,4 +118,21 @@ export interface LifeEvent {
   suggestedBudget?: number;
   requiredItems: string[];
   timeline?: string;
+}
+
+// NEW: Shopper DNA profile
+export interface ShopperDNA {
+  traits: string[];
+  budgetStyle: string;
+  topCategories: string[];
+  deliveryPref: string;
+  personalityTag: string;
+}
+
+// NEW: Streaming chunk from SSE
+export interface StreamChunk {
+  type: 'agent_log' | 'agent_done' | 'response_token' | 'bundles' | 'products' | 'debate' | 'dna' | 'done' | 'error';
+  agentId?: AgentName;
+  text?: string;
+  data?: unknown;
 }
