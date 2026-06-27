@@ -2,14 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'KAgent — Sri Lanka\'s AI Life Shopping Concierge',
-  description: 'Tell KAgent what\'s happening in your life. Our AI agents build your complete shopping plan with real Sri Lankan products, festivals, and local vendors.',
-  keywords: ['Sri Lanka', 'shopping', 'AI', 'Kapruka', 'agent', 'concierge', 'Sinhala'],
-  openGraph: {
-    title: 'KAgent',
-    description: 'Sri Lanka\'s AI Life Shopping Concierge',
-    type: 'website',
-  },
+  title: "KAgent — Sri Lanka's AI Life Shopping Concierge",
+  description: "Tell KAgent what's happening in your life. 7 AI agents build your complete shopping plan with real Sri Lankan products, instant bundles, and local vendors.",
+  keywords: ['Sri Lanka', 'shopping', 'AI', 'agent', 'concierge', 'Sinhala', 'Colombo'],
+  manifest: '/manifest.json',
+  themeColor: '#7C3AED',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +15,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syncopate:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
       <body>{children}</body>
     </html>
