@@ -8,11 +8,6 @@ interface Props {
   disabled?: boolean;
 }
 
-type SpeechRecognitionEvent = {
-  resultIndex: number;
-  results: SpeechRecognitionResultList;
-};
-
 declare global {
   interface Window {
     SpeechRecognition: any;
@@ -40,7 +35,7 @@ export default function VoiceInput({ onTranscript, disabled }: Props) {
     recognition.continuous = false;
     recognitionRef.current = recognition;
 
-    recognition.onresult = (e: SpeechRecognitionEvent) => {
+    recognition.onresult = (e: any) => {
       let interimText = '';
       let finalText = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
