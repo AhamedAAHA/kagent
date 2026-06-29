@@ -27,7 +27,7 @@ export default function ChatInput({ onSend, disabled, showSurprise = false }: Pr
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {/* Extra tools row */}
       {showSurprise && (
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
           <SurpriseMode onSurprise={msg => onSend(msg)} />
         </div>
       )}
