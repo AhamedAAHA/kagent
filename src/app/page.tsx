@@ -16,6 +16,7 @@ import ChatInput from '@/components/chat/ChatInput';
 import CartSidebar from '@/components/ui/CartSidebar';
 import FestivalBanner from '@/components/ui/FestivalBanner';
 import BudgetRing from '@/components/ui/BudgetRing';
+import ShopperDNACard from '@/components/ui/ShopperDNACard';
 
 const HalideTopo = dynamic(() => import('@/components/landing/HalideTopo'), { ssr: false });
 
@@ -161,14 +162,14 @@ export default function HomePage() {
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
-      updateLastMessage({ content: `Sorry, something went wrong: ${msg}. Please check your OPENAI_API_KEY.` });
+      updateLastMessage({ content: `Sorry, something went wrong: ${msg}. Please check your ANTHROPIC_API_KEY.` });
       agents.forEach(a => updateAgent(a.id, { status: 'error' }));
       addTerminalLine('system', `✗ Error: ${msg}`);
     } finally {
       setLoading(false);
       streamingIdRef.current = null;
     }
-  }, [isLoading, messages, agents, messageCount, userBudget, addMessage, addTerminalLine, appendAgentLog, clearTerminal, resetAgents, setLoading, setShopperDNA, updateAgent, updateLastMessage]);
+  }, [isLoading, messages, agents, messageCount, userBudget]);
 
   /* ── LANDING ─────────────────────────────────────────────────────────── */
   if (!chatOpen) return (
@@ -254,6 +255,13 @@ export default function HomePage() {
             START MISSION <ArrowRight size={12} />
           </button>
         </div>
+
+        {/* Shopper DNA Card - Right Side */}
+        {shopperDNA && (
+          <div style={{ gridColumn: '2', gridRow: '2', justifySelf: 'end', alignSelf: 'center', pointerEvents: 'auto', maxWidth: 320 }}>
+            <ShopperDNACard dna={shopperDNA} />
+          </div>
+        )}
       </div>
 
       {/* 3D topo bg */}
