@@ -5,14 +5,10 @@ import { ShoppingCart, Check, Truck } from 'lucide-react';
 import { ShoppingBundle } from '@/types';
 import { useKAgentStore } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
+import { UserLanguage } from '@/lib/language';
+import { uiLabels } from '@/lib/ui-strings';
 
-interface Props { bundle: ShoppingBundle; index?: number; }
-
-const TIER = {
-  budget:   { label: 'BUDGET',      icon: '💚', accent: '#34D399', dimAccent: 'rgba(5,150,105,0.15)', border: 'rgba(5,150,105,0.25)' },
-  midrange: { label: 'RECOMMENDED', icon: '⭐', accent: '#A78BFA', dimAccent: 'rgba(124,58,237,0.15)', border: 'rgba(124,58,237,0.35)' },
-  premium:  { label: 'COMPLETE',    icon: '👑', accent: '#FCD34D', dimAccent: 'rgba(217,119,6,0.12)', border: 'rgba(217,119,6,0.3)' },
-};
+interface Props { bundle: ShoppingBundle; index?: number; lang?: UserLanguage; }
 
 function ItemThumb({ src, name }: { src?: string; name: string }) {
   if (!src?.startsWith('http')) {
@@ -34,8 +30,14 @@ function ItemThumb({ src, name }: { src?: string; name: string }) {
   );
 }
 
-export default function BundleCard({ bundle, index = 0 }: Props) {
+export default function BundleCard({ bundle, index = 0, lang = 'en' }: Props) {
   const addToCart = useKAgentStore(s => s.addToCart);
+  const L = uiLabels(lang);
+  const TIER = {
+    budget:   { label: L.tierBudget,   icon: '💚', accent: '#34D399', dimAccent: 'rgba(5,150,105,0.15)', border: 'rgba(5,150,105,0.25)' },
+    midrange: { label: L.tierMid,      icon: '⭐', accent: '#A78BFA', dimAccent: 'rgba(124,58,237,0.15)', border: 'rgba(124,58,237,0.35)' },
+    premium:  { label: L.tierPremium,  icon: '👑', accent: '#FCD34D', dimAccent: 'rgba(217,119,6,0.12)', border: 'rgba(217,119,6,0.3)' },
+  };
   const cfg = TIER[bundle.tier];
 
   return (
@@ -65,7 +67,7 @@ export default function BundleCard({ bundle, index = 0 }: Props) {
                 fontFamily: 'JetBrains Mono, monospace', fontSize: 8, color: '#A78BFA',
                 background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)',
                 borderRadius: 3, padding: '2px 6px', letterSpacing: '0.1em',
-              }}>POPULAR</span>
+              }}>{L.popular}</span>
             )}
           </div>
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: '#fff' }}>{bundle.name}</p>
@@ -121,7 +123,7 @@ export default function BundleCard({ bundle, index = 0 }: Props) {
         onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
       >
         <ShoppingCart size={12} />
-        ADD {bundle.items.length} ITEMS TO CART
+        {L.bundleAdd} ({bundle.items.length})
       </button>
     </motion.div>
   );

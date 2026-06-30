@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Loader2, Truck } from 'lucide-react';
+import { X, ExternalLink, Loader2, Truck, AlertCircle } from 'lucide-react';
 import { useKAgentStore } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
 import { CheckoutSession } from '@/types';
+import { detectUserLanguage } from '@/lib/language';
+import { checkoutLabels } from '@/lib/ui-strings';
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  lastUserMessage?: string;
 }
 
 function tomorrowIso(): string {
@@ -18,9 +21,18 @@ function tomorrowIso(): string {
   return d.toISOString().slice(0, 10);
 }
 
-export default function CheckoutModal({ open, onClose }: Props) {
-  const { cart, cartTotal, setCheckoutSession } = useKAgentStore();
+interface DeliveryState {
+  available: boolean;
+  rate?: number;
+  next_available_date?: string | null;
+  reason?: string | null;
+}
+
+export default function CheckoutModal({ open, onClose, lastUserMessage = '' }: Props) {
+  const { cart, cartTotal, setCheckoutSession, addPurchase } = useKAgentStore();
   const total = cartTotal();
+  const lang = detectUserLanguage(lastUserMessage || 'checkout');
+  const L = checkoutLabels(lang);
 
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
@@ -30,13 +42,20 @@ export default function CheckoutModal({ open, onClose }: Props) {
   const [senderName, setSenderName] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [instructions, setInstructions] = useState('');
+  const [icingText, setIcingText] = useState('');
+  const [anonymous, setAnonymous] = useState(false);
   const [cities, setCities] = useState<string[]>(['Colombo 03', 'Colombo 05', 'Kandy', 'Galle']);
-  const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
+  const [delivery, setDelivery] = useState<DeliveryState | null>(null);
+  const [checkingDelivery, setCheckingDelivery] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [session, setSession] = useState<CheckoutSession | null>(null);
 
   const kaprukaItems = cart.filter(i => i.product.kaprukaId || i.product.source === 'kapruka');
+  const hasCake = kaprukaItems.some(i => {
+    const id = (i.product.kaprukaId ?? i.product.id).toUpperCase();
+    return id.startsWith('CAKE') || i.product.name.toLowerCase().includes('cake');
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -51,27 +70,42 @@ export default function CheckoutModal({ open, onClose }: Props) {
   }, [open]);
 
   useEffect(() => {
-    if (!open || !city) return;
+    if (!open || !city || !deliveryDate) return;
+    setCheckingDelivery(true);
     fetch('/api/kapruka/check-delivery', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ city, delivery_date: deliveryDate, product_id: kaprukaItems[0]?.product.kaprukaId }),
+      body: JSON.stringify({
+        city,
+        delivery_date: deliveryDate,
+        product_id: kaprukaItems[0]?.product.kaprukaId,
+      }),
     })
       .then(r => r.json())
       .then(data => {
-        if (data.available && data.rate != null) setDeliveryFee(data.rate);
-        else setDeliveryFee(null);
+        setDelivery({
+          available: Boolean(data.available),
+          rate: data.rate,
+          next_available_date: data.next_available_date,
+          reason: data.reason,
+        });
       })
-      .catch(() => setDeliveryFee(null));
+      .catch(() => setDelivery(null))
+      .finally(() => setCheckingDelivery(false));
   }, [open, city, deliveryDate, kaprukaItems]);
 
   async function handleCheckout() {
     setError('');
+    if (delivery && !delivery.available) {
+      setError(L.deliveryUnavailable);
+      return;
+    }
     setLoading(true);
     try {
       const cartPayload = kaprukaItems.map(i => ({
         product_id: i.product.kaprukaId ?? i.product.id,
         quantity: i.quantity,
+        ...(hasCake && icingText ? { icing_text: icingText } : {}),
       }));
 
       if (cartPayload.length === 0) {
@@ -85,7 +119,7 @@ export default function CheckoutModal({ open, onClose }: Props) {
           cart: cartPayload,
           recipient: { name: recipientName, phone: recipientPhone },
           delivery: { address, city, date: deliveryDate, instructions },
-          sender: { name: senderName },
+          sender: { name: senderName, anonymous },
           gift_message: giftMessage || undefined,
         }),
       });
@@ -102,12 +136,15 @@ export default function CheckoutModal({ open, onClose }: Props) {
       };
       setSession(checkout);
       setCheckoutSession(checkout);
+      kaprukaItems.forEach(i => addPurchase(i.product.kaprukaId ?? i.product.id, i.product.name));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Checkout failed');
     } finally {
       setLoading(false);
     }
   }
+
+  const deliveryOk = !delivery || delivery.available;
 
   return (
     <AnimatePresence>
@@ -131,7 +168,7 @@ export default function CheckoutModal({ open, onClose }: Props) {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.12em' }}>
-                KAPRUKA CHECKOUT
+                {L.title}
               </span>
               <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
                 <X size={16} />
@@ -141,11 +178,9 @@ export default function CheckoutModal({ open, onClose }: Props) {
             {session ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
-                  Order <strong>{session.orderRef}</strong> created. Pay on Kapruka to complete your purchase.
+                  Order <strong>{session.orderRef}</strong> created. {L.payKapruka} to complete.
                 </p>
-                <p style={{ fontSize: 22, fontWeight: 800, color: '#A78BFA' }}>
-                  {formatPrice(session.grandTotal)}
-                </p>
+                <p style={{ fontSize: 22, fontWeight: 800, color: '#A78BFA' }}>{formatPrice(session.grandTotal)}</p>
                 <a
                   href={session.checkoutUrl}
                   target="_blank"
@@ -157,40 +192,71 @@ export default function CheckoutModal({ open, onClose }: Props) {
                     letterSpacing: '0.1em', textDecoration: 'none',
                   }}
                 >
-                  PAY ON KAPRUKA <ExternalLink size={14} />
+                  {L.payKapruka} <ExternalLink size={14} />
                 </a>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>
-                  Link expires {new Date(session.expiresAt).toLocaleString('en-LK')}. Prices locked until then.
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', lineHeight: 1.5, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+                  After payment, use your Kapruka email order number (VIMP…) in <strong>Track Kapruka Order</strong> in the cart.
                 </p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {kaprukaItems.length < cart.length && (
-                  <p style={{ fontSize: 10, color: '#FCD34D', background: 'rgba(252,211,77,0.08)', padding: 8, borderRadius: 6 }}>
-                    {cart.length - kaprukaItems.length} local mock item(s) won&apos;t be included — only live Kapruka products checkout.
-                  </p>
-                )}
-
-                <Field label="Recipient name" value={recipientName} onChange={setRecipientName} />
-                <Field label="Recipient phone" value={recipientPhone} onChange={setRecipientPhone} placeholder="0771234567" />
-                <Field label="Delivery address" value={address} onChange={setAddress} />
+                <Field label={L.recipientName} value={recipientName} onChange={setRecipientName} />
+                <Field label={L.recipientPhone} value={recipientPhone} onChange={setRecipientPhone} placeholder="0771234567" />
+                <Field label={L.address} value={address} onChange={setAddress} />
                 <label style={labelStyle}>
-                  City
+                  {L.city}
                   <select value={city} onChange={e => setCity(e.target.value)} style={inputStyle}>
                     {cities.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </label>
-                <Field label="Delivery date" value={deliveryDate} onChange={setDeliveryDate} type="date" />
-                <Field label="Your name (sender)" value={senderName} onChange={setSenderName} />
-                <Field label="Gift message (optional)" value={giftMessage} onChange={setGiftMessage} />
-                <Field label="Delivery instructions (optional)" value={instructions} onChange={setInstructions} />
+                <Field label={L.deliveryDate} value={deliveryDate} onChange={setDeliveryDate} type="date" />
+                <Field label={L.senderName} value={senderName} onChange={setSenderName} />
+                <Field label={L.giftMessage} value={giftMessage} onChange={setGiftMessage} />
+                {hasCake && (
+                  <Field label={L.icingText} value={icingText} onChange={setIcingText} placeholder="Happy Birthday Amma!" />
+                )}
+                <Field label={L.instructions} value={instructions} onChange={setInstructions} />
+                <label style={{ ...labelStyle, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <input type="checkbox" checked={anonymous} onChange={e => setAnonymous(e.target.checked)} />
+                  <span>{L.anonymous}</span>
+                </label>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>Items: {formatPrice(total)}</span>
-                  {deliveryFee != null && (
-                    <span style={{ fontSize: 10, color: '#34D399', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Truck size={10} /> + LKR {deliveryFee.toLocaleString()} delivery
+                {checkingDelivery ? (
+                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>Checking delivery…</p>
+                ) : delivery && (
+                  <div style={{
+                    fontSize: 10, padding: 8, borderRadius: 6,
+                    background: delivery.available ? 'rgba(52,211,153,0.08)' : 'rgba(248,113,113,0.08)',
+                    border: `1px solid ${delivery.available ? 'rgba(52,211,153,0.25)' : 'rgba(248,113,113,0.25)'}`,
+                    color: delivery.available ? '#34D399' : '#F87171',
+                    display: 'flex', alignItems: 'flex-start', gap: 6,
+                  }}>
+                    {delivery.available ? <Truck size={12} style={{ flexShrink: 0, marginTop: 1 }} /> : <AlertCircle size={12} style={{ flexShrink: 0, marginTop: 1 }} />}
+                    <span>
+                      {delivery.available
+                        ? `Delivery available — LKR ${delivery.rate?.toLocaleString() ?? '—'} flat rate`
+                        : `${L.deliveryUnavailable}${delivery.reason ? `: ${delivery.reason}` : ''}`}
+                      {!delivery.available && delivery.next_available_date && (
+                        <button
+                          type="button"
+                          onClick={() => setDeliveryDate(delivery.next_available_date!.slice(0, 10))}
+                          style={{
+                            display: 'block', marginTop: 6, background: 'none', border: 'none',
+                            color: '#A78BFA', cursor: 'pointer', fontSize: 10, padding: 0,
+                            fontFamily: 'JetBrains Mono, monospace',
+                          }}
+                        >
+                          {L.useNextDate}: {delivery.next_available_date}
+                        </button>
+                      )}
                     </span>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>
+                  <span>Items: {formatPrice(total)}</span>
+                  {delivery?.available && delivery.rate != null && (
+                    <span style={{ color: '#34D399' }}>+ LKR {delivery.rate.toLocaleString()} delivery</span>
                   )}
                 </div>
 
@@ -198,16 +264,16 @@ export default function CheckoutModal({ open, onClose }: Props) {
 
                 <button
                   onClick={handleCheckout}
-                  disabled={loading || !recipientName || !recipientPhone || !address || !senderName}
+                  disabled={loading || !recipientName || !recipientPhone || !address || !senderName || !deliveryOk}
                   style={{
-                    width: '100%', background: loading ? 'rgba(124,58,237,0.5)' : '#7C3AED',
+                    width: '100%', background: loading || !deliveryOk ? 'rgba(124,58,237,0.5)' : '#7C3AED',
                     border: 'none', borderRadius: 9, color: '#fff', padding: '12px 0',
                     fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fontWeight: 700,
                     letterSpacing: '0.12em', cursor: loading ? 'wait' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   }}
                 >
-                  {loading ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> CREATING ORDER...</> : 'CREATE KAPRUKA ORDER'}
+                  {loading ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> …</> : L.createOrder}
                 </button>
               </div>
             )}
@@ -239,13 +305,7 @@ function Field({
   return (
     <label style={labelStyle}>
       {label}
-      <input
-        type={type}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={inputStyle}
-      />
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={inputStyle} />
     </label>
   );
 }

@@ -2,7 +2,12 @@
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useKAgentStore } from '@/lib/store';
-import { Terminal } from 'lucide-react';
+import { Terminal, X } from 'lucide-react';
+
+interface Props {
+  onClose?: () => void;
+  closeLabel?: string;
+}
 
 const AGENT_COLORS: Record<string, string> = {
   'concierge':  '#A78BFA',
@@ -14,7 +19,7 @@ const AGENT_COLORS: Record<string, string> = {
   'delivery':   '#22D3EE',
 };
 
-export default function AgentTerminal() {
+export default function AgentTerminal({ onClose, closeLabel = 'Close' }: Props) {
   const terminalLines = useKAgentStore(s => s.terminalLines);
   const isLoading = useKAgentStore(s => s.isLoading);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -31,7 +36,6 @@ export default function AgentTerminal() {
       borderRadius: 12, overflow: 'hidden',
       height: '100%', minHeight: 320,
     }}>
-      {/* Terminal header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 14px',
@@ -62,9 +66,24 @@ export default function AgentTerminal() {
             </span>
           </div>
         )}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={closeLabel}
+            style={{
+              marginLeft: isLoading ? 8 : 'auto',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 6, padding: 4, cursor: 'pointer',
+              color: 'rgba(255,255,255,0.45)', display: 'flex', alignItems: 'center',
+            }}
+          >
+            <X size={12} />
+          </button>
+        )}
       </div>
 
-      {/* Terminal body */}
       <div style={{
         flex: 1, overflowY: 'auto', padding: '12px 14px',
         fontFamily: 'JetBrains Mono, monospace', fontSize: 11,

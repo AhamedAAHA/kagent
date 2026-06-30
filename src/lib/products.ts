@@ -117,12 +117,12 @@ export function inferLifeEventFromMessage(message: string): {
   const budget = parseBudgetFromMessage(message);
 
   const rules: { event: string; patterns: RegExp[] }[] = [
-    { event: 'moving', patterns: [/mov(ing|e)/, /apartment/, /new home/, /relocate/] },
-    { event: 'university', patterns: [/universit/, /uni\s+setup/, /college/, /starting\s+uni/] },
-    { event: 'birthday', patterns: [/birthday/, /bday/, /mother'?s?\s+birthday/, /anniversary/] },
-    { event: 'hosting', patterns: [/hosting/, /host\s+\d+/, /party/, /guests?/, /people\s+this/] },
-    { event: 'festival', patterns: [/avurudu/, /vesak/, /deepavali/, /christmas/, /eid/, /festival/] },
-    { event: 'surprise', patterns: [/surprise\s+me/, /gaming\s+night/, /coffee\s+lover/, /movie\s+night/, /wellness\s+kit/, /mystery\s+box/, /sri lankan vibes/] },
+    { event: 'moving', patterns: [/mov(ing|e)/, /apartment/, /new home/, /relocate/, /gasa\s*yana/, /නව\s*ගෙ/, /ගෙය\s*යන/] },
+    { event: 'university', patterns: [/universit/, /uni\s+setup/, /college/, /starting\s+uni/, /varsity/, /uni\s*yanawa/] },
+    { event: 'birthday', patterns: [/birthday/, /bday/, /mother'?s?\s+birthday/, /anniversary/, /උපන්\s*දින/, /upadin/, /birthday\s*ekat/, /amma\s*ge/, /nangi\s*ge/, /akka\s*ge/] },
+    { event: 'hosting', patterns: [/hosting/, /host\s+\d+/, /party/, /guests?/, /people\s+this/, /සාදය/] },
+    { event: 'festival', patterns: [/avurudu/, /vesak/, /deepavali/, /christmas/, /eid/, /festival/, /අවුරුද්ද/, /වෙසක්/] },
+    { event: 'surprise', patterns: [/surprise\s+me/, /gaming\s+night/, /coffee\s+lover/, /movie\s+night/, /wellness\s+kit/, /mystery\s+box/, /sri lankan vibes/, /denna\s*oni/, /gift\s*ekak/] },
     { event: 'redeploy', patterns: [/redeploy/, /deploy(ment|ing)?/] },
   ];
 
@@ -149,12 +149,42 @@ export function inferLifeEventFromMessage(message: string): {
     general: 'Building a personalised shopping plan',
   };
 
+  const sinhalaSummaries: Record<string, string> = {
+    moving: 'නව නිවසක් සකස් කිරීමට උදව්',
+    university: 'විශ්වවිද්‍යාලයට සූදානම් වෙමු',
+    birthday: 'හොඳම උපන්දින තෑගිය සොයමු',
+    hosting: 'ආගන්තුකයින් සඳහා සූදානම්',
+    festival: 'උත්සවයක් සඳහා සාප්පු සවාරි',
+    surprise: 'පුදුම තෑගි පැකේජයක්',
+    redeploy: 'නව project redeploy එකට සූදානම්',
+    general: 'ඔබට ගැලපෙන සාප්පු සැලසුම',
+  };
+
+  const tanglishSummaries: Record<string, string> = {
+    moving: 'Nawa ge ekata oni de tika hoyaganna',
+    university: 'Uni yanawa — oni de tika pack ekak',
+    birthday: 'Birthday ekata perfect gift ekak hoyaganna',
+    hosting: 'Party/hosting ekata oni de tika',
+    festival: 'Festival ekata shopping plan ekak',
+    surprise: 'Surprise gift pack ekak',
+    redeploy: 'Redeploy ekata workspace setup',
+    general: 'Oyaṭa match wena shopping plan ekak',
+  };
+
+  const isSinhala = /[\u0D80-\u0DFF]/.test(message);
+  const isTanglish = !isSinhala && /\b(amma|mama|ekak|ekata|denna|oni|rosa|mal\b|birthday\s*ekat)\b/i.test(message);
+  const summary = isSinhala
+    ? (sinhalaSummaries[event] ?? sinhalaSummaries.general)
+    : isTanglish
+      ? (tanglishSummaries[event] ?? tanglishSummaries.general)
+      : (summaries[event] ?? summaries.general);
+
   return {
     event,
     tags,
     budget,
     urgency: 'flexible' as const,
-    summary: summaries[event] ?? summaries.general,
+    summary,
   };
 }
 

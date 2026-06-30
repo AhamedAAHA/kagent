@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { ChatMessage, CartItem, FamilyMember, Agent, ShopperDNA, CheckoutSession } from '@/types';
+import { UserLanguage } from '@/lib/language';
+import { learnFromMessage } from '@/lib/memory';
 
 interface KAgentStore {
   // Chat
@@ -17,9 +19,14 @@ interface KAgentStore {
   clearCart: () => void;
   cartTotal: () => number;
 
+  // UI language (persisted)
+  uiLanguage: UserLanguage;
+  setUiLanguage: (lang: UserLanguage) => void;
+
   // Family Memory (persisted)
   familyMembers: FamilyMember[];
   addFamilyMember: (member: FamilyMember) => void;
+  learnMemoryFromMessage: (message: string) => void;
 
   // Shopper DNA (persisted)
   shopperDNA: ShopperDNA | null;
@@ -91,8 +98,14 @@ export const useKAgentStore = create<KAgentStore>()(
       clearCart: () => set({ cart: [] }),
       cartTotal: () => get().cart.reduce((s, i) => s + i.product.price * i.quantity, 0),
 
+      uiLanguage: 'en' as UserLanguage,
+      setUiLanguage: (lang) => set({ uiLanguage: lang }),
+
       familyMembers: [],
       addFamilyMember: (m) => set(s => ({ familyMembers: [...s.familyMembers, m] })),
+      learnMemoryFromMessage: (message) => set(s => ({
+        familyMembers: learnFromMessage(message, s.familyMembers),
+      })),
 
       shopperDNA: null,
       setShopperDNA: (dna) => set({ shopperDNA: dna }),
@@ -132,6 +145,7 @@ export const useKAgentStore = create<KAgentStore>()(
     {
       name: 'kagent-storage',
       partialize: (s) => ({
+        uiLanguage: s.uiLanguage,
         familyMembers: s.familyMembers,
         shopperDNA: s.shopperDNA,
         purchaseHistory: s.purchaseHistory,

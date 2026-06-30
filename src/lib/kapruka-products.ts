@@ -1,6 +1,7 @@
 import { Product, ProductCategory } from '@/types';
 import { callKaprukaTool } from './kapruka';
 import { findProductsForSituation as findLocalProducts } from './products';
+import { tanglishSearchTerms } from './language';
 
 export interface KaprukaSearchResult {
   id: string;
@@ -88,6 +89,20 @@ export async function searchKaprukaProducts(
   }
 }
 
+export async function getKaprukaProduct(productId: string): Promise<Product | null> {
+  try {
+    const data = await callKaprukaTool<{ product?: KaprukaSearchResult } & KaprukaSearchResult>(
+      'kapruka_get_product',
+      { product_id: productId, response_format: 'json' },
+    );
+    const item = (data as { product?: KaprukaSearchResult }).product ?? data;
+    if (!item?.id || !item.name) return null;
+    return kaprukaToProduct(item as KaprukaSearchResult);
+  } catch {
+    return null;
+  }
+}
+
 const EVENT_QUERIES: Record<string, string[]> = {
   moving: ['home gift hamper', 'kitchen essentials', 'bedroom gift'],
   university: ['student gift', 'study gift hamper', 'laptop bag gift'],
@@ -105,6 +120,10 @@ function buildSearchQueries(event: string, tags: string[], userMessage: string):
 
   for (const q of EVENT_QUERIES[event] ?? EVENT_QUERIES.general) {
     queries.add(q);
+  }
+
+  for (const term of tanglishSearchTerms(userMessage)) {
+    queries.add(term);
   }
 
   for (const tag of tags.slice(0, 4)) {

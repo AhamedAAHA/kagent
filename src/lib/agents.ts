@@ -3,6 +3,12 @@ import { checkKaprukaDelivery, findKaprukaProductsForSituation } from './kapruka
 import { getFestivalContext, getUpcomingFestival } from './festivals';
 import { getLLMClient, getLLMModel } from './llm';
 import {
+  detectUserLanguage, conciergeLanguageInstructions, lifeEventLanguageNote, UserLanguage,
+} from './language';
+import {
+  MemoryContext, buildMemoryInsight, applyMemoryToProducts, memorySearchBoosts,
+} from './memory';
+import {
   Product, ShoppingBundle, CartItem, AgentActivity, AgentName,
   AgentDebateMessage, ShopperDNA, StreamChunk
 } from '@/types';
@@ -14,9 +20,41 @@ function buildLocalConciergeResponse(
   products: Product[],
   bundles: ShoppingBundle[],
   budget?: number,
+  lang: UserLanguage = 'en',
 ): string {
   const top = products.slice(0, 3).map(p => `${p.name} (${formatPrice(p.price)}, ${p.vendor})`).join('; ');
   const recommended = bundles[1] ?? bundles[0];
+
+  if (lang === 'si') {
+    const budgetLine = budget
+      ? `ඔබේ අයවැය ${formatPrice(budget)} — ඒ තුළ හොඳ tier තුනක් හදලා තියෙනවා.`
+      : 'අයවැය flexible — ඔයාට ගැලපෙන tier එක තෝරන්න.';
+    return [
+      `${summary || 'ඔබේ සාප්පු සැලසුම සකස් කරලා'} — Kapruka live catalog එකෙන් හොඳ matches හොයාගත්තා.`,
+      `ප්‍රධාන තේරීම්: ${top || 'Kapruka වෙතින් flowers, gifts, hampers'}.`,
+      budgetLine,
+      recommended
+        ? `මම recommend කරන්නේ **${recommended.name}** bundle එක (${formatPrice(recommended.totalPrice)}) — ${recommended.description}.`
+        : 'පහළ product cards වලින් cart එකට add කරන්න.',
+      'Bundle එකක් තෝරලා checkout කරන්න, හෝ වෙනස් කරන්න ඕනේ නම් කියන්න.',
+    ].join('\n\n');
+  }
+
+  if (lang === 'tanglish') {
+    const budgetLine = budget
+      ? `Oya budget ${formatPrice(budget)} — eka athara 3 tiers hadala tiyenawa, overspend nathiwa.`
+      : 'Budget flexible — oyaṭa match wena tier eka select karanna.';
+    return [
+      `${summary || 'Oya situation eka understand kala'} — Kapruka live catalog eken hodata match wena items hoyala.`,
+      `Top picks: ${top || 'roses, gift hampers, chocolate — Kapruka'}.`,
+      budgetLine,
+      recommended
+        ? `Mama recommend karanna **${recommended.name}** bundle eka ${formatPrice(recommended.totalPrice)} — ${recommended.description}. Value eka hondai, delivery fast.`
+        : 'Product cards balanna, cart ekata add karanna.',
+      'Bundle ekak pick karala fast checkout, nam adjust karanna oni nam kiyanna.',
+    ].join('\n\n');
+  }
+
   const budgetLine = budget
     ? `Your budget of ${formatPrice(budget)} gives us room to build sensible tiers without overspending.`
     : 'I kept the plan flexible on budget so you can choose the tier that feels right.';
@@ -172,7 +210,9 @@ function buildBundles(items: Product[], event = 'general', budgetCap?: number): 
 function buildDebate(
   lifeEvent: string,
   budget: number | null,
-  topProduct: Product | undefined
+  topProduct: Product | undefined,
+  memoryLine: string,
+  deliveryNote: string,
 ): AgentDebateMessage[] {
   const now = new Date();
   const ms = (n: number) => new Date(now.getTime() + n * 300);
@@ -181,9 +221,9 @@ function buildDebate(
   return [
     { agentId: 'budget',    type: 'statement',  content: budget ? `Budget cap is ${formatPrice(budget)}. I've optimised 3 tiers staying within range.` : `No hard budget set. I recommend staying under Rs. 50,000 for best value.`, timestamp: ms(0) },
     { agentId: 'shopping',  type: 'statement',  content: topProduct ? `Found ${topProduct.name} at ${price} from ${topProduct.vendor}. Rating: ★${topProduct.rating}. Strong match for this ${lifeEvent}.` : `Found strong matches across Sri Lankan vendors for this ${lifeEvent}.`, timestamp: ms(1) },
-    { agentId: 'delivery',  type: 'statement',  content: `Same-day delivery confirmed in Colombo. Outstation: 2-3 days via Kapruka logistics.`, timestamp: ms(2) },
+    { agentId: 'delivery',  type: 'statement',  content: deliveryNote, timestamp: ms(2) },
     { agentId: 'festival',  type: 'objection',  content: `Festival timing matters — some items may sell out. I recommend ordering at least 3 days early.`, timestamp: ms(3) },
-    { agentId: 'memory',    type: 'agreement',  content: `Preferences noted. Personalising based on your history — favouring quality over lowest price.`, timestamp: ms(4) },
+    { agentId: 'memory',    type: 'agreement',  content: memoryLine, timestamp: ms(4) },
     { agentId: 'concierge', type: 'verdict',    content: `Recommendation: Midrange bundle offers best value. Includes all essentials, within budget, arrives in time. Proceeding with full plan.`, timestamp: ms(5) },
   ];
 }
@@ -222,20 +262,29 @@ export async function* runAgentStream(
   conversationHistory: { role: 'user' | 'assistant'; content: string }[],
   userBudget?: number,
   messageCount: number = 1,
+  memory: MemoryContext = { familyMembers: [], purchaseHistory: [] },
 ): AsyncGenerator<StreamChunk> {
 
   const festivalContext = getFestivalContext();
   const upcomingFestival = getUpcomingFestival();
+  const userLang = detectUserLanguage(userMessage);
+  const memoryInsight = buildMemoryInsight(memory, userMessage, messageCount);
+  const memoryBoosts = memorySearchBoosts(memory, userMessage);
 
   // ── Life Event Agent ──────────────────────────────────────────────────────
   yield { type: 'agent_log', agentId: 'life-event', text: 'Parsing your message...' };
 
+  const langNote = lifeEventLanguageNote(userLang);
   const lifeEventPrompt = `You are the KAgent Life Event Analyser. Extract from the user message:
 1. Life event type (moving, university, birthday, anniversary, hosting, festival, surprise, general)
-2. Key items needed (JSON array of short search tags, max 8)
+2. Key items needed (JSON array of short English search tags for Kapruka, max 8)
 3. Budget in LKR (number or null)
 4. Urgency: same-day | this-week | this-month | flexible
-5. One-sentence summary
+5. One-sentence summary (English is fine; match user's language if Sinhala/Tanglish)
+
+${langNote ? `${langNote}\n` : ''}Tanglish examples:
+- "amma ge birthday ekata roses denna oni" → event: birthday, tags: ["roses","birthday","gift","mother"]
+- "mata gift ekak oni surprise" → event: surprise, tags: ["gift","hamper","surprise"]
 
 Respond ONLY with valid JSON — no markdown, no extra text:
 {"event":"string","tags":["tag1","tag2"],"budget":number|null,"urgency":"string","summary":"string"}
@@ -320,13 +369,17 @@ User: "${userMessage}"`;
   const effectiveBudget = userBudget ?? lifeEventData.budget ?? undefined;
 
   yield { type: 'agent_log', agentId: 'shopping', text: `Situation: ${lifeEventData.event} · ${lifeEventData.tags.slice(0, 5).join(', ')}` };
+  if (memoryBoosts.length > 0) {
+    lifeEventData.tags = [...new Set([...lifeEventData.tags, ...memoryBoosts])].slice(0, 12);
+    yield { type: 'agent_log', agentId: 'shopping', text: `Memory boost: ${memoryBoosts.join(', ')}` };
+  }
   const { products: allProducts, source: catalogSource } = await findKaprukaProductsForSituation(
     userMessage,
     lifeEventData.tags,
     lifeEventData.event,
     effectiveBudget,
   );
-  const rankedProducts = allProducts.slice(0, 20);
+  const rankedProducts = applyMemoryToProducts(allProducts.slice(0, 20), memory);
 
   yield { type: 'agent_log', agentId: 'shopping', text: `Found ${rankedProducts.length} products via ${catalogSource === 'kapruka' ? 'Kapruka MCP' : 'local fallback'}` };
   yield { type: 'agent_log', agentId: 'shopping', text: `Vendors: ${[...new Set(rankedProducts.map(p => p.vendor))].slice(0, 4).join(', ')}` };
@@ -363,12 +416,23 @@ User: "${userMessage}"`;
 
   // ── Memory Agent ──────────────────────────────────────────────────────────
   yield { type: 'agent_log', agentId: 'memory', text: 'Loading user preferences...' };
-  await new Promise(r => setTimeout(r, 100));
-  yield { type: 'agent_log', agentId: 'memory', text: `Session ${messageCount} — building profile` };
-  yield { type: 'agent_done', agentId: 'memory', text: 'Profile personalised for your shopping style' };
+  for (const line of memoryInsight.logLines) {
+    yield { type: 'agent_log', agentId: 'memory', text: line };
+  }
+  yield { type: 'agent_done', agentId: 'memory', text: memoryInsight.summary };
+
+  const deliveryNote = deliveryCheck?.available
+    ? `Colombo 03: available — LKR ${deliveryCheck.rate?.toLocaleString() ?? '—'} flat rate. Outstation 2-3 days.`
+    : `${sameDayCount} items same-day in Colombo. Outstation: 2-3 business days via Kapruka.`;
 
   // ── Debate ────────────────────────────────────────────────────────────────
-  const debate = buildDebate(lifeEventData.event, lifeEventData.budget, rankedProducts[0]);
+  const debate = buildDebate(
+    lifeEventData.event,
+    lifeEventData.budget,
+    rankedProducts[0],
+    memoryInsight.debateLine,
+    deliveryNote,
+  );
   yield { type: 'debate', data: debate };
 
   // ── Shopper DNA (after 2+ messages) ──────────────────────────────────────
@@ -380,16 +444,18 @@ User: "${userMessage}"`;
   // ── Send products & bundles early ─────────────────────────────────────────
   const displayProducts = rankedProducts
     .filter(p => p.image?.startsWith('http'))
-    .concat(rankedProducts.filter(p => !p.image?.startsWith('http')))
     .slice(0, 12);
-  yield { type: 'products', data: displayProducts };
+  yield { type: 'products', data: displayProducts.length > 0 ? displayProducts : rankedProducts.slice(0, 12) };
   if (bundles.length > 0) yield { type: 'bundles', data: bundles };
 
   // ── Concierge Agent — streaming response ──────────────────────────────────
   yield { type: 'agent_log', agentId: 'concierge', text: 'Composing your personalised plan...' };
 
-  const systemPrompt = `You are KAgent — Sri Lanka's most intelligent AI life shopping concierge. You speak like a warm, knowledgeable local friend.
+  const systemPrompt = `You are KAgent — Sri Lanka's most intelligent AI life shopping concierge. You speak like a warm, knowledgeable local friend from Colombo.
 
+${conciergeLanguageInstructions(userLang)}
+
+${memoryInsight.promptBlock ? `User memory:\n${memoryInsight.promptBlock}\n` : ''}
 Detected situation: ${lifeEventData.event} — ${lifeEventData.summary}
 Tags: ${lifeEventData.tags.join(', ')}
 Budget: ${effectiveBudget ? formatPrice(effectiveBudget) : 'open'}
@@ -401,7 +467,7 @@ ${rankedProducts.slice(0, 8).map(p => `• ${p.name} — ${formatPrice(p.price)}
 
 ${bundles.length > 0 ? `Bundle tiers: Budget ${formatPrice(bundles[0].totalPrice)} | Mid ${formatPrice(bundles[1].totalPrice)} | Premium ${formatPrice(bundles[2].totalPrice)}` : ''}
 
-Write 2-3 warm, specific paragraphs. Name real products and vendors. Reference Sri Lankan culture naturally. End with a clear bundle recommendation and why. Keep it under 180 words.`;
+Write 2-3 warm, specific paragraphs. Name real Kapruka products and prices. Reference Sri Lankan culture naturally (Avurudu, amma, office, uni life). End with a clear bundle recommendation. Keep under 180 words.`;
 
   const messages = [
     ...conversationHistory.slice(-6),
@@ -414,6 +480,7 @@ Write 2-3 warm, specific paragraphs. Name real products and vendors. Reference S
     rankedProducts,
     bundles,
     effectiveBudget,
+    userLang,
   );
 
   try {
@@ -458,9 +525,10 @@ export async function runAgentOrchestration(
   userMessage: string,
   conversationHistory: { role: 'user' | 'assistant'; content: string }[],
   userBudget?: number,
+  memory?: MemoryContext,
 ): Promise<AgentResult> {
   const chunks: StreamChunk[] = [];
-  for await (const chunk of runAgentStream(userMessage, conversationHistory, userBudget)) {
+  for await (const chunk of runAgentStream(userMessage, conversationHistory, userBudget, 1, memory)) {
     chunks.push(chunk);
   }
 

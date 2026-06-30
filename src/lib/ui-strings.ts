@@ -1,0 +1,272 @@
+import { UserLanguage } from './language';
+
+export const QUICK_PROMPTS = [
+  { icon: '🌸', labelEn: "MOM'S BDAY", labelSi: 'අම්මාගේ උපන්දින', labelTg: 'Amma birthday', msg: 'amma ge birthday ekata roses denna oni, budget 15000' },
+  { icon: '🎁', labelEn: 'GIFT HAMPER', labelSi: 'තෑගි පැකේජය', labelTg: 'Gift hamper', msg: 'gift hamper for avurudu, budget 10000' },
+  { icon: '🏠', labelEn: 'NEW HOME GIFT', labelSi: 'නව ගෙදර තෑගි', labelTg: 'New home gift', msg: 'new home gift hamper for a friend moving to Colombo, budget 20000' },
+  { icon: '🎓', labelEn: 'STUDENT GIFT', labelSi: 'ශිෂ්‍ය තෑගි', labelTg: 'Uni gift', msg: 'university student gift hamper, budget Rs. 8000' },
+  { icon: '🎊', labelEn: 'PARTY GIFT', labelSi: 'සාද තෑගි', labelTg: 'Party gift', msg: 'gift hamper for hosting 25 people this Saturday' },
+];
+
+export type UiLabels = ReturnType<typeof uiLabels>;
+
+export function quickPromptLabel(q: (typeof QUICK_PROMPTS)[0], lang: UserLanguage): string {
+  if (lang === 'si') return q.labelSi;
+  if (lang === 'tanglish') return q.labelTg;
+  return q.labelEn;
+}
+
+export function uiLabels(lang: UserLanguage) {
+  if (lang === 'si') {
+    return {
+      cart: 'කරත්තය',
+      cartEmpty: 'කරත්තය හිස්ය',
+      cartEmptyHint: 'KAgent ට කියන්න\nඔබට අවශ්‍ය දේ',
+      total: 'මුළු මුදල',
+      checkout: 'ගෙවීමට යන්න',
+      clearCart: 'කරත්තය හිස් කරන්න',
+      trackOrder: 'KAPRUKA ඇණවුම track කරන්න',
+      trackPlaceholder: 'Kapruka order number (VIMP…)',
+      trackBtn: 'TRACK',
+      trackHint: 'Kapruka confirmation email එකේ order number එක දාන්න (VIMP34456CB2 වගේ).',
+      trackFailed: 'ඇණවුම හොයාගත නොහැක',
+      progress: 'ප්‍රගතිය',
+      delivery: 'බෙදාහැරීම',
+      chatPlaceholder: 'ඔබේ ජීවිතයේ මොකද වෙන්නේ? (උදා: අම්මාගේ birthday එකට roses…)',
+      chatFooter: 'AI AGENTS 7 · KAPRUKA LIVE · SINHALA · TANGLISH',
+      send: 'යවන්න',
+      awaiting: 'ඔබේ ජීවිත අවස්ථාව බලාපොරොත්තු…',
+      agentSwarm: 'AGENT SWARM',
+      terminal: 'TERMINAL',
+      terminalToggle: 'LIVE AGENT STREAM',
+      terminalClose: 'Close stream',
+      agents: 'AGENTS',
+      startMission: 'MISSION එක අරඹන්න',
+      landingSubtitle: 'AI agents 7ක් ඔබේ ජීවිත අවස්චාව විශ්ලේෂණය කර Kapruka live catalog එකෙන් සම්පූර්ණ shopping plan එකක් හදනවා.',
+      livePicks: '── KAPRUKA LIVE · සජීවී තෝරාගැනීම් ──',
+      chooseBundle: '── ඔබේ SETUP එක තෝරන්න ──',
+      addToCart: 'ADD',
+      sameDay: 'අද',
+      inStock: 'තිබේ',
+      kaprukaLive: 'KAPRUKA',
+      viewDetails: 'Details',
+      loadingProducts: 'Products load වෙනවා…',
+      errorGeneric: 'යමක් වැරදුණා. නැවත උත්සාහ කරන්න.',
+      errorNetwork: 'Connection error — internet check කරලා නැවත try කරන්න.',
+      errorApiKey: 'AI service configure කර නැත. EXA_API_KEY check කරන්න.',
+      lookingUpOrder: 'Kapruka order එක හොයනවා…',
+      orderNotFound: 'Order number එක check කරන්න — Kapruka email එකෙන්.',
+      langEn: 'EN',
+      langSi: 'සිං',
+      langTg: 'Tg',
+      mobileAgents: 'agents active',
+      productLoadError: 'Product load වෙන්නේ නැහැ',
+      bundleAdd: 'කරත්තයට එකතු කරන්න',
+      tierBudget: 'BUDGET',
+      tierMid: 'RECOMMENDED',
+      tierPremium: 'COMPLETE',
+      popular: 'POPULAR',
+      memorySaved: 'Memory save වුණා',
+      voiceStart: 'කතා කරන්න',
+      voiceStop: 'නවත්වන්න',
+      voiceUnsupported: 'Voice — Chrome හෝ Edge (HTTPS)',
+      voiceDenied: 'Microphone permission අවසර දෙන්න',
+      voiceError: 'Voice input fail — නැවත try කරන්න',
+      landingMeta: (voice: boolean) => voice
+        ? '[ 7 AGENTS · STREAMING · VOICE ON ]'
+        : '[ 7 AGENTS · STREAMING · VOICE: CHROME ]',
+    };
+  }
+
+  if (lang === 'tanglish') {
+    return {
+      cart: 'CART',
+      cartEmpty: 'Cart eka empty',
+      cartEmptyHint: 'KAgent ta kiyanna\noyaṭa oni de',
+      total: 'TOTAL',
+      checkout: 'CHECKOUT YANNA',
+      clearCart: 'Cart clear karanna',
+      trackOrder: 'KAPRUKA ORDER TRACK',
+      trackPlaceholder: 'Order number (VIMP…)',
+      trackBtn: 'TRACK',
+      trackHint: 'Kapruka confirmation email eke order number eka danna (VIMP34456CB2 wage).',
+      trackFailed: 'Order eka hoyaganna ba',
+      progress: 'PROGRESS',
+      delivery: 'Delivery',
+      chatPlaceholder: "Oya life eke mokakda? (e.g. amma ge birthday ekata roses denna oni…)",
+      chatFooter: '7 AI AGENTS · KAPRUKA LIVE · SINHALA · TANGLISH',
+      send: 'Yanna',
+      awaiting: 'Oya life situation eka balaporoththu…',
+      agentSwarm: 'AGENT SWARM',
+      terminal: 'TERMINAL',
+      terminalToggle: 'LIVE AGENT STREAM',
+      terminalClose: 'Close stream',
+      agents: 'AGENTS',
+      startMission: 'MISSION ARAMBANNA',
+      landingSubtitle: '7 AI agents oya life situation eka analyse karala Kapruka live catalog eken complete shopping plan ekak hadanawa.',
+      livePicks: '── KAPRUKA LIVE · සජීවී picks ──',
+      chooseBundle: '── OYA SETUP EKA SELECT KARANNA ──',
+      addToCart: 'ADD',
+      sameDay: 'Same day',
+      inStock: 'In stock',
+      kaprukaLive: 'KAPRUKA',
+      viewDetails: 'Details',
+      loadingProducts: 'Products load wenawa…',
+      errorGeneric: 'Monok da waduna. Nethi try karanna.',
+      errorNetwork: 'Connection error — internet check karala try karanna.',
+      errorApiKey: 'AI service configure karala nathi. EXA_API_KEY check karanna.',
+      lookingUpOrder: 'Kapruka order eka hoyanawa…',
+      orderNotFound: 'Order number eka check karanna — Kapruka email eken.',
+      langEn: 'EN',
+      langSi: 'සිං',
+      langTg: 'Tg',
+      mobileAgents: 'agents active',
+      productLoadError: 'Product load wenne naha',
+      bundleAdd: 'CART EKATA ADD KARANNA',
+      tierBudget: 'BUDGET',
+      tierMid: 'RECOMMENDED',
+      tierPremium: 'COMPLETE',
+      popular: 'POPULAR',
+      memorySaved: 'Memory save una',
+      voiceStart: 'Katha karanna',
+      voiceStop: 'Nawathanna',
+      voiceUnsupported: 'Voice — Chrome or Edge (HTTPS)',
+      voiceDenied: 'Microphone permission denna',
+      voiceError: 'Voice fail — try again',
+      landingMeta: (voice: boolean) => voice
+        ? '[ 7 AGENTS · STREAMING · VOICE ON ]'
+        : '[ 7 AGENTS · STREAMING · VOICE: CHROME ]',
+    };
+  }
+
+  return {
+    cart: 'CART',
+    cartEmpty: 'CART IS EMPTY',
+    cartEmptyHint: 'TELL KAGENT\nWHAT YOU NEED',
+    total: 'TOTAL',
+    checkout: 'PROCEED TO CHECKOUT',
+    clearCart: 'CLEAR CART',
+    trackOrder: 'TRACK KAPRUKA ORDER',
+    trackPlaceholder: 'Your Kapruka order number',
+    trackBtn: 'TRACK',
+    trackHint: 'Use the order number from your Kapruka confirmation email (e.g. VIMP34456CB2).',
+    trackFailed: 'Could not track that order',
+    progress: 'PROGRESS',
+    delivery: 'Delivery',
+    chatPlaceholder: "What's happening in your life? (e.g. amma ge birthday ekata roses denna oni…)",
+    chatFooter: 'POWERED BY 7 AI AGENTS · KAPRUKA LIVE · SINHALA · TANGLISH',
+    send: 'Send',
+    awaiting: 'AWAITING YOUR LIFE SITUATION',
+    agentSwarm: 'AGENT SWARM',
+    terminal: 'TERMINAL',
+    terminalToggle: 'LIVE AGENT STREAM',
+    terminalClose: 'Close stream',
+    agents: 'AGENTS',
+    startMission: 'START MISSION',
+    landingSubtitle: '7 AI agents analyse your life situation and build a complete shopping plan from the Kapruka live catalog — instantly.',
+    livePicks: '── LIVE KAPRUKA PICKS · සජීවී තෝරාගැනීම් ──',
+    chooseBundle: '── CHOOSE YOUR SETUP ──',
+    addToCart: 'ADD',
+    sameDay: 'Same day',
+    inStock: 'In stock',
+    kaprukaLive: 'KAPRUKA',
+    viewDetails: 'Details',
+    loadingProducts: 'Loading products…',
+    errorGeneric: 'Something went wrong. Please try again.',
+    errorNetwork: 'Connection error — check your internet and try again.',
+    errorApiKey: 'AI service not configured. Check EXA_API_KEY in environment settings.',
+    lookingUpOrder: 'Looking up your Kapruka order…',
+    orderNotFound: 'Check the order number from your Kapruka email.',
+    langEn: 'EN',
+    langSi: 'සිං',
+    langTg: 'Tg',
+    mobileAgents: 'agents active',
+    productLoadError: 'Could not load product',
+      bundleAdd: 'ADD TO CART',
+    tierBudget: 'BUDGET',
+    tierMid: 'RECOMMENDED',
+    tierPremium: 'COMPLETE',
+    popular: 'POPULAR',
+    memorySaved: 'Memory saved',
+    voiceStart: 'Speak your request',
+    voiceStop: 'Stop listening',
+    voiceUnsupported: 'Voice works in Chrome or Edge (HTTPS)',
+    voiceDenied: 'Allow microphone access to use voice',
+    voiceError: 'Voice input failed — try again',
+    landingMeta: (voice: boolean) => voice
+      ? '[ 7 AGENTS · STREAMING · VOICE ON ]'
+      : '[ 7 AGENTS · STREAMING · VOICE: CHROME ]',
+  };
+}
+
+export function checkoutLabels(lang: UserLanguage) {
+  if (lang === 'si') {
+    return {
+      title: 'KAPRUKA ගෙවීම',
+      recipientName: 'ලබන්නාගේ නම',
+      recipientPhone: 'දුරකථන අංකය',
+      address: 'ලිපිනය',
+      city: 'නගරය',
+      deliveryDate: 'බෙදාහැරීමේ දිනය',
+      senderName: 'ඔබේ නම (යවන්නා)',
+      giftMessage: 'තෑගි පණිවිඩය (අමතර)',
+      instructions: 'බෙදාහැරීමේ උපදෙස්',
+      icingText: 'කේක් icing පාඨය',
+      anonymous: 'නිර්නාමික යවන්නා',
+      createOrder: 'KAPRUKA ඇණවුම සාදන්න',
+      payKapruka: 'KAPRUKA වෙත ගෙවන්න',
+      deliveryUnavailable: 'මෙම දිනයේ බෙදාහැරීම නොමැත',
+      useNextDate: 'ලබාගත හැකි දිනය භාවිතා කරන්න',
+      checkingDelivery: 'බෙදාහැරීම පරීක්ෂා කරමින්…',
+      orderCreated: 'ඇණවුම සාදන ලදී',
+    };
+  }
+  if (lang === 'tanglish') {
+    return {
+      title: 'KAPRUKA CHECKOUT',
+      recipientName: 'Recipient name (ලබන්නා)',
+      recipientPhone: 'Phone (දුරකථන)',
+      address: 'Address (ලිපිනය)',
+      city: 'City (නගරය)',
+      deliveryDate: 'Delivery date',
+      senderName: 'Oyage name (sender)',
+      giftMessage: 'Gift message — optional',
+      instructions: 'Delivery instructions',
+      icingText: 'Cake icing text',
+      anonymous: 'Anonymous sender',
+      createOrder: 'CREATE KAPRUKA ORDER',
+      payKapruka: 'PAY ON KAPRUKA',
+      deliveryUnavailable: 'Delivery not available on this date',
+      useNextDate: 'Use next available date',
+      checkingDelivery: 'Delivery check karana…',
+      orderCreated: 'Order haduna',
+    };
+  }
+  return {
+    title: 'KAPRUKA CHECKOUT',
+    recipientName: 'Recipient name',
+    recipientPhone: 'Recipient phone',
+    address: 'Delivery address',
+    city: 'City',
+    deliveryDate: 'Delivery date',
+    senderName: 'Your name (sender)',
+    giftMessage: 'Gift message (optional)',
+    instructions: 'Delivery instructions (optional)',
+    icingText: 'Cake icing text',
+    anonymous: 'Send anonymously',
+    createOrder: 'CREATE KAPRUKA ORDER',
+    payKapruka: 'PAY ON KAPRUKA',
+    deliveryUnavailable: 'Delivery not available on this date',
+    useNextDate: 'Use next available date',
+    checkingDelivery: 'Checking delivery…',
+    orderCreated: 'Order created',
+  };
+}
+
+export function errorMessage(lang: UserLanguage, err: unknown): string {
+  const L = uiLabels(lang);
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/EXA_API_KEY|OPENAI|not configured|401|403/i.test(msg)) return L.errorApiKey;
+  if (/fetch|network|HTTP|Failed to fetch/i.test(msg)) return L.errorNetwork;
+  return `${L.errorGeneric} (${msg})`;
+}

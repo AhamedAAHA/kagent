@@ -1,13 +1,74 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { formatPrice } from '@/lib/utils';
+import { LogoMark } from '@/components/ui/Logo';
+
+interface Spotlight {
+  live: boolean;
+  featuredName: string;
+  featuredPrice: number;
+}
 
 interface Props {
   className?: string;
+  cartTotal?: number;
+  cartCount?: number;
+  activeAgents?: number;
+  spotlight?: Spotlight | null;
+  /** Landing always shows live Kapruka spotlight; cart shown as secondary line */
+  mode?: 'landing' | 'default';
 }
 
-export default function HalideTopo({ className = '' }: Props) {
+export default function HalideTopo({
+  className = '',
+  cartTotal = 0,
+  cartCount = 0,
+  activeAgents = 0,
+  spotlight = null,
+  mode = 'default',
+}: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const layersRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  const isLanding = mode === 'landing';
+  const waitingSpotlight = spotlight === null;
+  const livePrice = spotlight?.featuredPrice ?? 0;
+
+  const displayTotal = isLanding
+    ? livePrice
+    : cartTotal > 0
+      ? cartTotal
+      : livePrice;
+
+  const displayLabel = isLanding
+    ? (spotlight?.live ? 'KAPRUKA LIVE' : waitingSpotlight ? 'KAPRUKA LIVE' : 'OPTIMISED CART')
+    : cartTotal > 0
+      ? 'YOUR CART'
+      : spotlight?.live
+        ? 'KAPRUKA LIVE'
+        : waitingSpotlight
+          ? 'KAPRUKA LIVE'
+          : 'OPTIMISED CART';
+
+  const subLabel = isLanding
+    ? spotlight?.live
+      ? spotlight.featuredName.slice(0, 28) + (spotlight.featuredName.length > 28 ? '…' : '')
+      : waitingSpotlight
+        ? 'FETCHING LIVE CATALOG…'
+        : 'CONNECTING TO MCP…'
+    : cartCount > 0
+      ? `${cartCount} ITEM${cartCount > 1 ? 'S' : ''} IN CART`
+      : spotlight?.live
+        ? spotlight.featuredName.slice(0, 28) + (spotlight.featuredName.length > 28 ? '…' : '')
+        : waitingSpotlight
+          ? 'FETCHING LIVE CATALOG…'
+          : 'CONNECTING TO MCP…';
+
+  const cartHint = isLanding && cartCount > 0
+    ? `${cartCount} item${cartCount > 1 ? 's' : ''} · ${formatPrice(cartTotal)} in cart`
+    : null;
+
+  const showLoading = waitingSpotlight && (isLanding || cartTotal === 0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -55,7 +116,6 @@ export default function HalideTopo({ className = '' }: Props) {
           transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/* Layer 1 — deep topo base: Sri Lankan terrain */}
         <div
           ref={el => { layersRef.current[0] = el; }}
           style={{
@@ -70,8 +130,6 @@ export default function HalideTopo({ className = '' }: Props) {
             transition: 'transform 0.5s ease',
           }}
         />
-
-        {/* Layer 2 — gold shimmer overlay */}
         <div
           ref={el => { layersRef.current[1] = el; }}
           style={{
@@ -85,8 +143,6 @@ export default function HalideTopo({ className = '' }: Props) {
             transition: 'transform 0.5s ease',
           }}
         />
-
-        {/* Layer 3 — agent grid lines */}
         <div
           ref={el => { layersRef.current[2] = el; }}
           style={{
@@ -101,8 +157,6 @@ export default function HalideTopo({ className = '' }: Props) {
             transition: 'transform 0.5s ease',
           }}
         />
-
-        {/* Layer 4 — topo highlight contours */}
         <div
           ref={el => { layersRef.current[3] = el; }}
           style={{
@@ -116,49 +170,36 @@ export default function HalideTopo({ className = '' }: Props) {
           }}
         />
 
-        {/* KAgent badge on the 3D card */}
         <div style={{
-          position: 'absolute', top: '18px', left: '22px',
-          zIndex: 10, transform: 'translateZ(80px)',
+          position: 'absolute', top: '18px', left: '22px', zIndex: 10, transform: 'translateZ(80px)',
           display: 'flex', alignItems: 'center', gap: '8px',
         }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: 'linear-gradient(135deg,#7C3AED,#5B21B6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14,
-          }}>⚡</div>
+          <LogoMark size={28} />
           <span style={{ fontFamily: 'Inter,sans-serif', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.15em' }}>KAGENT_AI</span>
         </div>
 
-        {/* Top-right coordinates */}
         <div style={{
-          position: 'absolute', top: '18px', right: '22px',
-          zIndex: 10, transform: 'translateZ(80px)',
-          fontFamily: 'monospace', fontSize: 9, color: 'rgba(217,119,6,0.7)',
-          textAlign: 'right', lineHeight: 1.6,
+          position: 'absolute', top: '18px', right: '22px', zIndex: 10, transform: 'translateZ(80px)',
+          fontFamily: 'monospace', fontSize: 9, color: 'rgba(217,119,6,0.7)', textAlign: 'right', lineHeight: 1.6,
         }}>
-          <div>6.9271° N / 79.8612° E</div>
+          <div>{spotlight?.live ? '● MCP LIVE' : '○ MCP'}</div>
           <div>COLOMBO · SRI LANKA</div>
         </div>
 
-        {/* Agent status dots */}
         {[
           { label: 'CONCIERGE', color: '#A78BFA', x: '12%', y: '30%' },
-          { label: 'SHOPPING',  color: '#34D399', x: '72%', y: '22%' },
-          { label: 'FESTIVAL',  color: '#FCD34D', x: '85%', y: '58%' },
-          { label: 'BUDGET',    color: '#FB923C', x: '20%', y: '72%' },
-          { label: 'DELIVERY',  color: '#22D3EE', x: '55%', y: '78%' },
+          { label: 'SHOPPING', color: '#34D399', x: '72%', y: '22%' },
+          { label: 'FESTIVAL', color: '#FCD34D', x: '85%', y: '58%' },
+          { label: 'BUDGET', color: '#FB923C', x: '20%', y: '72%' },
+          { label: 'DELIVERY', color: '#22D3EE', x: '55%', y: '78%' },
         ].map((dot, i) => (
           <div key={dot.label} style={{
-            position: 'absolute', left: dot.x, top: dot.y,
-            zIndex: 10, transform: 'translateZ(100px)',
+            position: 'absolute', left: dot.x, top: dot.y, zIndex: 10, transform: 'translateZ(100px)',
             display: 'flex', alignItems: 'center', gap: 5,
             animation: `agentPulse ${1.5 + i * 0.3}s ease-in-out infinite`,
           }}>
             <div style={{
-              width: 6, height: 6, borderRadius: '50%',
-              background: dot.color,
+              width: 6, height: 6, borderRadius: '50%', background: dot.color,
               boxShadow: `0 0 8px ${dot.color}`,
             }} />
             <span style={{
@@ -168,26 +209,49 @@ export default function HalideTopo({ className = '' }: Props) {
           </div>
         ))}
 
-        {/* Center price display */}
         <div style={{
           position: 'absolute', left: '50%', top: '50%',
           transform: 'translate(-50%,-50%) translateZ(110px)',
-          zIndex: 10, textAlign: 'center',
+          zIndex: 10, textAlign: 'center', maxWidth: '80%',
         }}>
-          <div style={{ fontFamily: 'monospace', fontSize: 9, color: 'rgba(167,139,250,0.5)', letterSpacing: '0.2em', marginBottom: 4 }}>OPTIMISED CART</div>
-          <div style={{ fontFamily: 'Inter,sans-serif', fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Rs. 0</div>
-          <div style={{ fontFamily: 'monospace', fontSize: 8, color: 'rgba(217,119,6,0.6)', marginTop: 3 }}>7 AGENTS ACTIVE</div>
+          <div style={{ fontFamily: 'monospace', fontSize: 9, color: 'rgba(167,139,250,0.5)', letterSpacing: '0.2em', marginBottom: 4 }}>
+            {displayLabel}
+          </div>
+          <div style={{ fontFamily: 'Inter,sans-serif', fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+            {showLoading ? (
+              <span style={{ opacity: 0.45, fontSize: 22, letterSpacing: '0.08em' }}>···</span>
+            ) : (
+              formatPrice(displayTotal)
+            )}
+          </div>
+          <div style={{
+            fontFamily: 'monospace', fontSize: 8, color: 'rgba(217,119,6,0.6)', marginTop: 3,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {subLabel}
+          </div>
+          {cartHint && (
+            <div style={{ fontFamily: 'monospace', fontSize: 8, color: 'rgba(52,211,153,0.75)', marginTop: 5 }}>
+              {cartHint}
+            </div>
+          )}
+          {activeAgents > 0 && (
+            <div style={{ fontFamily: 'monospace', fontSize: 8, color: 'rgba(52,211,153,0.7)', marginTop: 6 }}>
+              {activeAgents} AGENTS ACTIVE
+            </div>
+          )}
         </div>
 
-        {/* Bottom bar */}
         <div style={{
           position: 'absolute', bottom: '16px', left: '22px', right: '22px',
           zIndex: 10, transform: 'translateZ(80px)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10,
         }}>
-          <span style={{ fontFamily: 'monospace', fontSize: 8, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em' }}>[ LIFE INTELLIGENCE PLATFORM ]</span>
-          <span style={{ fontFamily: 'monospace', fontSize: 8, color: 'rgba(217,119,6,0.5)', letterSpacing: '0.1em' }}>POWERED BY BAND OF AGENTS</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 8, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em' }}>[ KAPRUKA MCP · LIVE CATALOG ]</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 8, color: spotlight?.live ? 'rgba(52,211,153,0.7)' : 'rgba(217,119,6,0.5)', letterSpacing: '0.1em' }}>
+            {spotlight?.live ? 'CONNECTED' : 'SYNCING'}
+          </span>
         </div>
       </div>
     </div>

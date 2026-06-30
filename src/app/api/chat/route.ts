@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { runAgentStream } from '@/lib/agents';
+import { FamilyMember } from '@/types';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -11,7 +12,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { message, history = [], budget, messageCount = 1 } = body;
+    const {
+      message,
+      history = [],
+      budget,
+      messageCount = 1,
+      familyMembers = [],
+      purchaseHistory = [],
+    } = body;
 
     if (!message?.trim()) {
       return new Response(JSON.stringify({ error: 'Message required' }), { status: 400 });
@@ -23,7 +31,14 @@ export async function POST(req: NextRequest) {
       async start(controller) {
         try {
           for await (const chunk of runAgentStream(
-            message, history, budget ? Number(budget) : undefined, messageCount
+            message,
+            history,
+            budget ? Number(budget) : undefined,
+            messageCount,
+            {
+              familyMembers: familyMembers as FamilyMember[],
+              purchaseHistory: purchaseHistory as { productId: string; name: string; date: string }[],
+            },
           )) {
             const data = `data: ${JSON.stringify(chunk)}\n\n`;
             controller.enqueue(encoder.encode(data));

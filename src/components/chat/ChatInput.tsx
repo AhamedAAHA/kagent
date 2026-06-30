@@ -3,15 +3,19 @@ import { useState, KeyboardEvent } from 'react';
 import { Send, Sparkles } from 'lucide-react';
 import VoiceInput from './VoiceInput';
 import SurpriseMode from '@/components/ui/SurpriseMode';
+import { UserLanguage } from '@/lib/language';
+import { uiLabels } from '@/lib/ui-strings';
 
 interface Props {
   onSend: (message: string) => void;
   disabled?: boolean;
   showSurprise?: boolean;
+  lang?: UserLanguage;
 }
 
-export default function ChatInput({ onSend, disabled, showSurprise = false }: Props) {
+export default function ChatInput({ onSend, disabled, showSurprise = false, lang = 'en' }: Props) {
   const [value, setValue] = useState('');
+  const L = uiLabels(lang);
 
   function handleSend() {
     if (!value.trim() || disabled) return;
@@ -25,14 +29,12 @@ export default function ChatInput({ onSend, disabled, showSurprise = false }: Pr
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* Extra tools row */}
       {showSurprise && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
           <SurpriseMode onSurprise={msg => onSend(msg)} />
         </div>
       )}
 
-      {/* Input bar */}
       <div style={{
         display: 'flex', alignItems: 'flex-end', gap: 8,
         background: 'rgba(255,255,255,0.04)',
@@ -45,15 +47,15 @@ export default function ChatInput({ onSend, disabled, showSurprise = false }: Pr
           value={value}
           onChange={e => setValue(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="What's happening in your life?  (e.g. I'm moving next month…)"
+          placeholder={L.chatPlaceholder}
           rows={1}
           disabled={disabled}
           className="chat-input"
           style={{
             flex: 1, background: 'transparent', border: 'none', outline: 'none',
             color: 'var(--text)', fontSize: 13, resize: 'none',
-            fontFamily: 'Inter, sans-serif', lineHeight: 1.6,
-            minHeight: 40, maxHeight: 110, paddingTop: 8,
+            fontFamily: lang === 'si' ? 'Inter, "Noto Sans Sinhala", sans-serif' : 'Inter, sans-serif',
+            lineHeight: 1.6, minHeight: 40, maxHeight: 110, paddingTop: 8,
           }}
           onInput={e => {
             const el = e.currentTarget;
@@ -61,10 +63,27 @@ export default function ChatInput({ onSend, disabled, showSurprise = false }: Pr
             el.style.height = Math.min(el.scrollHeight, 110) + 'px';
           }}
         />
-        <VoiceInput onTranscript={t => { setValue(t); }} disabled={disabled} />
+        <VoiceInput
+          lang={lang}
+          disabled={disabled}
+          labels={{
+            start: L.voiceStart,
+            stop: L.voiceStop,
+            unsupported: L.voiceUnsupported,
+            denied: L.voiceDenied,
+            error: L.voiceError,
+          }}
+          onTranscript={t => {
+            const text = t.trim();
+            if (!text || disabled) return;
+            onSend(text);
+            setValue('');
+          }}
+        />
         <button
           onClick={handleSend}
           disabled={!value.trim() || disabled}
+          aria-label={L.send}
           style={{
             width: 38, height: 38, borderRadius: 10, border: 'none', flexShrink: 0,
             background: value.trim() && !disabled ? '#7C3AED' : 'rgba(124,58,237,0.15)',
@@ -82,7 +101,7 @@ export default function ChatInput({ onSend, disabled, showSurprise = false }: Pr
         fontFamily: 'JetBrains Mono, monospace', fontSize: 8,
         color: 'rgba(255,255,255,0.15)', textAlign: 'center', letterSpacing: '0.1em',
       }}>
-        POWERED BY 7 AI AGENTS · REAL SRI LANKAN PRODUCTS · VOICE ENABLED
+        {L.chatFooter}
       </p>
     </div>
   );

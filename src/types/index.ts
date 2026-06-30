@@ -43,6 +43,26 @@ export interface CheckoutSession {
   expiresAt: string;
 }
 
+export interface KaprukaOrderTracking {
+  order_number: string;
+  status: string;
+  status_display?: string;
+  order_date?: string;
+  delivery_date?: string;
+  shipped_date?: string | null;
+  amount?: string;
+  payment_method?: string;
+  recipient?: {
+    name: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+  };
+  greeting_message?: string | null;
+  progress?: { step: string; timestamp?: string }[];
+  items?: { product_id?: string; name: string; quantity: number; selling_price?: number }[];
+}
+
 export type ProductCategory =
   | 'food' | 'electronics' | 'household' | 'clothing'
   | 'gifts' | 'stationery' | 'beauty' | 'groceries'

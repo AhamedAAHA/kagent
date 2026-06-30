@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 import { ShopperDNA } from '@/types';
 import { Cpu } from 'lucide-react';
 
-interface Props { dna: ShopperDNA; }
+interface Props { dna: ShopperDNA; compact?: boolean; }
 
 const TRAIT_COLORS = ['#A78BFA','#34D399','#FCD34D','#F87171','#22D3EE','#FB923C'];
 
-export default function ShopperDNACard({ dna }: Props) {
+export default function ShopperDNACard({ dna, compact = false }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.92, y: 12 }}
@@ -16,7 +16,8 @@ export default function ShopperDNACard({ dna }: Props) {
       style={{
         background: 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(217,119,6,0.05))',
         border: '1px solid rgba(124,58,237,0.25)',
-        borderRadius: 12, padding: '14px 16px', marginTop: 12,
+        borderRadius: 12, padding: compact ? '12px 14px' : '14px 16px',
+        marginTop: compact ? 0 : 12,
         position: 'relative', overflow: 'hidden',
       }}
     >
