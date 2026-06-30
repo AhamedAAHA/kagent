@@ -21,7 +21,7 @@ export const LIFE_EVENT_KEYWORDS: Record<string, string[]> = {
   birthday: ['birthday', 'gift', 'flowers', 'chocolate', 'cake', 'card', 'mother', 'anniversary'],
   hosting: ['hosting', 'party', 'plates', 'drinks', 'kottu', 'ice', 'napkins', 'cake', 'event'],
   festival: ['festival', 'avurudu', 'vesak', 'gift', 'traditional', 'sweets'],
-  surprise: ['gift', 'chocolate', 'coffee', 'speaker', 'hamper', 'sweet'],
+  surprise: ['gift', 'chocolate', 'coffee', 'speaker', 'hamper', 'sweet', 'gaming', 'music', 'nescafe'],
   redeploy: ['laptop', 'keyboard', 'mouse', 'coffee', 'study', 'work'],
   general: [],
 };
@@ -122,7 +122,7 @@ export function inferLifeEventFromMessage(message: string): {
     { event: 'birthday', patterns: [/birthday/, /bday/, /mother'?s?\s+birthday/, /anniversary/] },
     { event: 'hosting', patterns: [/hosting/, /host\s+\d+/, /party/, /guests?/, /people\s+this/] },
     { event: 'festival', patterns: [/avurudu/, /vesak/, /deepavali/, /christmas/, /eid/, /festival/] },
-    { event: 'surprise', patterns: [/surprise\s+me/] },
+    { event: 'surprise', patterns: [/surprise\s+me/, /gaming\s+night/, /coffee\s+lover/, /movie\s+night/, /wellness\s+kit/, /mystery\s+box/, /sri lankan vibes/] },
     { event: 'redeploy', patterns: [/redeploy/, /deploy(ment|ing)?/] },
   ];
 
@@ -175,7 +175,7 @@ export const SRI_LANKA_PRODUCTS: Product[] = [
   { id: 'e003', name: 'Lenovo IdeaPad 15 Laptop (i3, 8GB, 256GB SSD)', price: 115000, category: 'electronics', subcategory: 'laptop', image: '/products/lenovo-laptop.jpg', vendor: 'ICTC', location: 'Colombo', inStock: true, deliveryDays: 3, tags: ['laptop', 'computer', 'study', 'work', 'university'], rating: 4.3, reviewCount: 189 },
   { id: 'e004', name: 'Panasonic Table Fan 16"', nameSinhala: 'පැනසොනික් මේස රිය', price: 3800, category: 'electronics', subcategory: 'appliances', image: '/products/table-fan.jpg', vendor: 'Softlogic', location: 'Nationwide', inStock: true, deliveryDays: 2, tags: ['fan', 'cooling', 'home', 'apartment'], rating: 4.1, reviewCount: 312 },
   { id: 'e005', name: 'Philips Rice Cooker 1.8L', nameSinhala: 'පිලිප්ස් බත් කළ', price: 8500, category: 'electronics', subcategory: 'appliances', image: '/products/rice-cooker.jpg', vendor: 'Abans', location: 'Nationwide', inStock: true, deliveryDays: 2, tags: ['kitchen', 'cooking', 'apartment', 'moving'], rating: 4.6, reviewCount: 428 },
-  { id: 'e006', name: 'JBL Go 3 Bluetooth Speaker', price: 5500, category: 'electronics', subcategory: 'audio', image: '/products/jbl-go.jpg', vendor: 'Softlogic', location: 'Colombo', inStock: true, deliveryDays: 2, tags: ['speaker', 'bluetooth', 'music', 'gift'], rating: 4.5, reviewCount: 167 },
+  { id: 'e006', name: 'JBL Go 3 Bluetooth Speaker', price: 5500, category: 'electronics', subcategory: 'audio', image: '/products/jbl-go.jpg', vendor: 'Softlogic', location: 'Colombo', inStock: true, deliveryDays: 2, tags: ['speaker', 'bluetooth', 'music', 'gift', 'gaming'], rating: 4.5, reviewCount: 167 },
   { id: 'e007', name: 'Logitech Wireless Mouse & Keyboard Combo', price: 4200, category: 'electronics', subcategory: 'accessories', image: '/products/logitech-combo.jpg', vendor: 'PC World', location: 'Colombo', inStock: true, deliveryDays: 2, tags: ['keyboard', 'mouse', 'computer', 'work', 'study', 'university'], rating: 4.4, reviewCount: 203 },
   { id: 'e008', name: 'Extension Cord 6-Socket 3m', price: 1200, category: 'electronics', subcategory: 'accessories', image: '/products/extension-cord.jpg', vendor: 'Hardware Zone', location: 'Nationwide', inStock: true, deliveryDays: 1, tags: ['electrical', 'home', 'apartment', 'moving'], rating: 4.0, reviewCount: 445 },
 

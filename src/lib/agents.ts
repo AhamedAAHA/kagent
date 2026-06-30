@@ -1,13 +1,44 @@
-import OpenAI from 'openai';
 import { findProductsForSituation, formatPrice, inferLifeEventFromMessage, LIFE_EVENT_KEYWORDS } from './products';
 import { getFestivalContext, getUpcomingFestival } from './festivals';
+import { getLLMClient, getLLMModel } from './llm';
 import {
   Product, ShoppingBundle, CartItem, AgentActivity, AgentName,
   AgentDebateMessage, ShopperDNA, StreamChunk
 } from '@/types';
 
-function getOpenAI() {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+function buildLocalConciergeResponse(
+  event: string,
+  summary: string,
+  products: Product[],
+  bundles: ShoppingBundle[],
+  budget?: number,
+): string {
+  const top = products.slice(0, 3).map(p => `${p.name} (${formatPrice(p.price)}, ${p.vendor})`).join('; ');
+  const recommended = bundles[1] ?? bundles[0];
+  const budgetLine = budget
+    ? `Your budget of ${formatPrice(budget)} gives us room to build sensible tiers without overspending.`
+    : 'I kept the plan flexible on budget so you can choose the tier that feels right.';
+
+  return [
+    `I've mapped out your ${event.replace(/-/g, ' ')} situation — ${summary || 'here is a practical Sri Lankan shopping plan'}.`,
+    `Strong local matches include ${top || 'essentials from trusted vendors across Colombo and nationwide delivery'}.`,
+    budgetLine,
+    recommended
+      ? `I recommend the **${recommended.name}** bundle at ${formatPrice(recommended.totalPrice)}: ${recommended.description}. It balances value, delivery speed, and the items you are most likely to need first.`
+      : 'Browse the product cards below and add what you need to the cart.',
+    'Pick a bundle to checkout faster, or tell me if you want to adjust anything.',
+  ].join('\n\n');
+}
+
+async function* streamText(text: string): AsyncGenerator<string> {
+  const words = text.split(/(\s+)/);
+  for (const part of words) {
+    if (part) {
+      yield part;
+      await new Promise(r => setTimeout(r, 12));
+    }
+  }
 }
 
 export interface AgentResult {
@@ -29,7 +60,56 @@ function makeActivity(
   return { agentId, status, message, timestamp: new Date(), logLines };
 }
 
-function buildBundles(items: Product[], event = 'general'): ShoppingBundle[] {
+
+function filterProductsForEvent(items: Product[], event: string): Product[] {
+  if (['moving', 'university', 'redeploy'].includes(event)) {
+    const filtered = items.filter(p =>
+      ['household', 'electronics', 'stationery'].includes(p.category) ||
+      (p.category === 'groceries' && p.tags.some(t => ['kitchen', 'cooking', 'apartment', 'moving'].includes(t))),
+    );
+    return filtered.length >= 4 ? filtered : items;
+  }
+  if (['birthday', 'surprise'].includes(event)) {
+    const filtered = items.filter(p =>
+      p.category === 'gifts' || p.category === 'festival' ||
+      p.tags.some(t => ['gift', 'chocolate', 'coffee', 'hamper', 'flowers', 'sweet', 'speaker', 'gaming', 'music', 'nescafe'].includes(t)),
+    );
+    return filtered.length >= 3 ? filtered : items;
+  }
+  if (event === 'hosting') {
+    const filtered = items.filter(p =>
+      p.tags.some(t => ['party', 'hosting', 'event', 'catering', 'drinks', 'ice', 'plates', 'napkins', 'cake'].includes(t)),
+    );
+    return filtered.length >= 4 ? filtered : items;
+  }
+  return items;
+}
+
+function pickRelevantTier(items: Product[], maxItems: number, maxSpend?: number): Product[] {
+  const picked: Product[] = [];
+  let spend = 0;
+  for (const p of items) {
+    if (picked.length >= maxItems) break;
+    if (maxSpend != null && spend + p.price > maxSpend) continue;
+    picked.push(p);
+    spend += p.price;
+  }
+  return picked.length > 0 ? picked : items.slice(0, Math.min(maxItems, items.length));
+}
+
+function pickPremiumTier(items: Product[], budgetCap?: number): Product[] {
+  if (!budgetCap) return items;
+  const picked: Product[] = [];
+  let spend = 0;
+  for (const p of items) {
+    if (spend + p.price > budgetCap) continue;
+    picked.push(p);
+    spend += p.price;
+  }
+  return picked.length > 0 ? picked : items.slice(0, Math.min(10, items.length));
+}
+
+function buildBundles(items: Product[], event = 'general', budgetCap?: number): ShoppingBundle[] {
   if (items.length === 0) return [];
 
   const labels: Record<string, { budget: string; mid: string; premium: string; budgetDesc: string; midDesc: string; premiumDesc: string }> = {
@@ -68,15 +148,18 @@ function buildBundles(items: Product[], event = 'general'): ShoppingBundle[] {
   };
 
   const L = labels[event] ?? labels.general;
-  const sorted = [...items].sort((a, b) => a.price - b.price);
+  const ranked = filterProductsForEvent(items, event);
   const total = (arr: Product[]) => arr.reduce((s, p) => s + p.price, 0);
   const maxDays = (arr: CartItem[]) => Math.max(...arr.map(i => i.product.deliveryDays));
   const label = (d: number) => d <= 1 ? 'Same day delivery' : `${d}-day delivery`;
   const toCart = (arr: Product[]): CartItem[] => arr.map(p => ({ product: p, quantity: 1 }));
 
-  const b = toCart(sorted.slice(0, Math.min(5, sorted.length)));
-  const m = toCart(sorted.slice(0, Math.min(7, sorted.length)));
-  const p = toCart(sorted);
+  const budgetSpend = budgetCap ? Math.min(budgetCap * 0.2, 20_000) : undefined;
+  const midSpend = budgetCap ? Math.min(budgetCap * 0.5, 60_000) : undefined;
+
+  const b = toCart(pickRelevantTier(ranked, 5, budgetSpend));
+  const m = toCart(pickRelevantTier(ranked, 7, midSpend));
+  const p = toCart(pickPremiumTier(ranked, budgetCap));
 
   return [
     { id: 'bundle-budget',  name: L.budget,  description: L.budgetDesc,  tier: 'budget',   items: b, totalPrice: total(b.map(i=>i.product)), estimatedDelivery: label(maxDays(b)) },
@@ -162,45 +245,49 @@ User: "${userMessage}"`;
   const localEvent = lifeEventData.event;
 
   try {
-    yield { type: 'agent_log', agentId: 'life-event', text: 'Detecting life situation...' };
-    const openai = getOpenAI();
-    const leRes = await openai.chat.completions.create({
-      model: 'gpt-4', max_tokens: 300,
-      messages: [{ role: 'user', content: lifeEventPrompt }],
-    });
-    const raw = leRes.choices[0]?.message?.content ?? '{}';
-    const parsed = JSON.parse(raw.replace(/```json?|```/g, '').trim());
+    const llm = getLLMClient();
+    if (llm) {
+      yield { type: 'agent_log', agentId: 'life-event', text: 'Detecting life situation...' };
+      const leRes = await llm.chat.completions.create({
+        model: getLLMModel(), max_tokens: 300,
+        messages: [{ role: 'user', content: lifeEventPrompt }],
+      });
+      const raw = leRes.choices[0]?.message?.content ?? '{}';
+      const parsed = JSON.parse(raw.replace(/```json?|```/g, '').trim());
 
-    // Keep strong local detection — don't let LLM downgrade moving → general
-    if (parsed.event && parsed.event !== 'general') {
-      lifeEventData.event = parsed.event;
-    } else if (localEvent !== 'general') {
-      lifeEventData.event = localEvent;
-    } else if (parsed.event) {
-      lifeEventData.event = parsed.event;
-    }
+      // Keep strong local detection — don't let LLM downgrade moving → general
+      if (parsed.event && parsed.event !== 'general') {
+        lifeEventData.event = parsed.event;
+      } else if (localEvent !== 'general') {
+        lifeEventData.event = localEvent;
+      } else if (parsed.event) {
+        lifeEventData.event = parsed.event;
+      }
 
-    if (Array.isArray(parsed.tags) && parsed.tags.length > 0) {
-      lifeEventData.tags = [...new Set([...lifeEventData.tags, ...parsed.tags.map(String)])];
-    }
-    if (parsed.budget != null) {
-      const llmBudget = Number(parsed.budget);
-      if (!Number.isNaN(llmBudget) && llmBudget > 0) lifeEventData.budget = llmBudget;
-    }
-    if (parsed.urgency) lifeEventData.urgency = parsed.urgency;
-    if (parsed.summary) lifeEventData.summary = parsed.summary;
+      if (Array.isArray(parsed.tags) && parsed.tags.length > 0) {
+        lifeEventData.tags = [...new Set([...lifeEventData.tags, ...parsed.tags.map(String)])];
+      }
+      if (parsed.budget != null) {
+        const llmBudget = Number(parsed.budget);
+        if (!Number.isNaN(llmBudget) && llmBudget > 0) lifeEventData.budget = llmBudget;
+      }
+      if (parsed.urgency) lifeEventData.urgency = parsed.urgency;
+      if (parsed.summary) lifeEventData.summary = parsed.summary;
 
-    // Re-apply event keyword tags if LLM left us with a specific event
-    if (lifeEventData.event !== 'general' && LIFE_EVENT_KEYWORDS[lifeEventData.event]) {
-      lifeEventData.tags = [...new Set([
-        ...LIFE_EVENT_KEYWORDS[lifeEventData.event],
-        ...lifeEventData.tags,
-      ])].slice(0, 12);
-    }
+      // Re-apply event keyword tags if LLM left us with a specific event
+      if (lifeEventData.event !== 'general' && LIFE_EVENT_KEYWORDS[lifeEventData.event]) {
+        lifeEventData.tags = [...new Set([
+          ...LIFE_EVENT_KEYWORDS[lifeEventData.event],
+          ...lifeEventData.tags,
+        ])].slice(0, 12);
+      }
 
-    yield { type: 'agent_log', agentId: 'life-event', text: `Detected: ${lifeEventData.event}` };
-    yield { type: 'agent_log', agentId: 'life-event', text: `Tags: ${lifeEventData.tags.join(', ')}` };
-    yield { type: 'agent_log', agentId: 'life-event', text: lifeEventData.budget ? `Budget: ${formatPrice(lifeEventData.budget)}` : 'No budget specified' };
+      yield { type: 'agent_log', agentId: 'life-event', text: `Detected: ${lifeEventData.event}` };
+      yield { type: 'agent_log', agentId: 'life-event', text: `Tags: ${lifeEventData.tags.join(', ')}` };
+      yield { type: 'agent_log', agentId: 'life-event', text: lifeEventData.budget ? `Budget: ${formatPrice(lifeEventData.budget)}` : 'No budget specified' };
+    } else {
+      throw new Error('No LLM configured');
+    }
   } catch {
     yield { type: 'agent_log', agentId: 'life-event', text: 'Using local keyword detection' };
     yield { type: 'agent_log', agentId: 'life-event', text: `Detected: ${lifeEventData.event} — ${lifeEventData.tags.join(', ')}` };
@@ -241,7 +328,7 @@ User: "${userMessage}"`;
   // ── Budget Agent ──────────────────────────────────────────────────────────
   yield { type: 'agent_log', agentId: 'budget', text: 'Building 3-tier bundle optimisation...' };
   await new Promise(r => setTimeout(r, 150));
-  const bundles = buildBundles(allProducts, lifeEventData.event);
+  const bundles = buildBundles(allProducts, lifeEventData.event, effectiveBudget);
 
   if (bundles.length > 0) {
     yield { type: 'agent_log', agentId: 'budget', text: `Budget tier:   ${formatPrice(bundles[0].totalPrice)}` };
@@ -303,25 +390,46 @@ Write 2-3 warm, specific paragraphs. Name real products and vendors. Reference S
     { role: 'user' as const, content: userMessage },
   ];
 
+  const localFallback = buildLocalConciergeResponse(
+    lifeEventData.event,
+    lifeEventData.summary,
+    allProducts,
+    bundles,
+    effectiveBudget,
+  );
+
   try {
-    const openai = getOpenAI();
-    const stream = await openai.chat.completions.create({
-      model: 'gpt-4',
+    const llm = getLLMClient();
+    if (!llm) throw new Error('No LLM configured');
+
+    const stream = await llm.chat.completions.create({
+      model: getLLMModel(),
       max_tokens: 500,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
       stream: true,
     });
 
+    let streamed = '';
     for await (const chunk of stream) {
       if (chunk.choices[0]?.delta?.content) {
+        streamed += chunk.choices[0].delta.content;
         yield { type: 'response_token', text: chunk.choices[0].delta.content };
       }
     }
 
+    if (!streamed.trim()) {
+      for await (const token of streamText(localFallback)) {
+        yield { type: 'response_token', text: token };
+      }
+    }
+
     yield { type: 'agent_done', agentId: 'concierge', text: 'Plan ready — enjoy your shopping!' };
-  } catch (err) {
-    yield { type: 'agent_done', agentId: 'concierge', text: 'Error generating plan' };
-    yield { type: 'error', text: err instanceof Error ? err.message : 'Unknown error' };
+  } catch {
+    yield { type: 'agent_log', agentId: 'concierge', text: 'Using local plan generator...' };
+    for await (const token of streamText(localFallback)) {
+      yield { type: 'response_token', text: token };
+    }
+    yield { type: 'agent_done', agentId: 'concierge', text: 'Plan ready — enjoy your shopping!' };
   }
 
   yield { type: 'done' };

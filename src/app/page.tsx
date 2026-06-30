@@ -163,7 +163,7 @@ export default function HomePage() {
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
-      updateLastMessage({ content: `Sorry, something went wrong: ${msg}. Please check your ANTHROPIC_API_KEY.` });
+      updateLastMessage({ content: `Sorry, something went wrong: ${msg}. Please check your EXA_API_KEY in environment settings.` });
       agents.forEach(a => updateAgent(a.id, { status: 'error' }));
       addTerminalLine('system', `✗ Error: ${msg}`);
     } finally {

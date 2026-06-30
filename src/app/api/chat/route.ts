@@ -5,8 +5,8 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  if (!process.env.OPENAI_API_KEY) {
-    return new Response(JSON.stringify({ error: 'OPENAI_API_KEY not configured' }), { status: 500 });
+  if (!process.env.EXA_API_KEY && !process.env.OPENAI_API_KEY) {
+    return new Response(JSON.stringify({ error: 'EXA_API_KEY or OPENAI_API_KEY not configured' }), { status: 500 });
   }
 
   try {
