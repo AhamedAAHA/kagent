@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 
-interface Props { onSurprise: (msg: string) => void; }
+interface Props { onSurprise: (msg: string) => void; variant?: 'default' | 'chip'; }
 
 const SURPRISE_PACKS = [
   { emoji: '☕', name: 'Coffee Lover', msg: 'Surprise me with a coffee lover gift pack under Rs. 3,000' },
@@ -14,7 +14,7 @@ const SURPRISE_PACKS = [
   { emoji: '🎁', name: 'Mystery Box', msg: 'Surprise me with your best recommendation under Rs. 5,000 — total surprise!' },
 ];
 
-export default function SurpriseMode({ onSurprise }: Props) {
+export default function SurpriseMode({ onSurprise, variant = 'default' }: Props) {
   const [open, setOpen] = useState(false);
   const [revealed, setRevealed] = useState<number | null>(null);
   const [shaking, setShaking] = useState(false);
@@ -33,18 +33,38 @@ export default function SurpriseMode({ onSurprise }: Props) {
     <>
       <button
         onClick={() => setOpen(true)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          background: 'rgba(252,211,77,0.08)', border: '1px solid rgba(252,211,77,0.25)',
-          borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
-          fontFamily: 'JetBrains Mono, monospace', fontSize: 9,
-          color: '#FCD34D', letterSpacing: '0.12em',
-          transition: 'all 0.2s ease',
+        type="button"
+        className={variant === 'chip' ? 'font-mono-custom glass' : undefined}
+        style={
+          variant === 'chip'
+            ? {
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '6px 13px', borderRadius: 6, fontSize: 8,
+                color: '#FCD34D', letterSpacing: '0.12em', cursor: 'pointer',
+                background: 'rgba(252,211,77,0.08)', border: '1px solid rgba(252,211,77,0.25)',
+                transition: 'all 0.2s', flexShrink: 0, whiteSpace: 'nowrap',
+              }
+            : {
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'rgba(252,211,77,0.08)', border: '1px solid rgba(252,211,77,0.25)',
+                borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+                fontFamily: 'JetBrains Mono, monospace', fontSize: 9,
+                color: '#FCD34D', letterSpacing: '0.12em',
+                transition: 'all 0.2s ease',
+              }
+        }
+        onMouseEnter={e => {
+          const el = e.currentTarget as HTMLButtonElement;
+          el.style.background = variant === 'chip' ? 'rgba(252,211,77,0.15)' : 'rgba(252,211,77,0.15)';
+          if (variant === 'chip') el.style.color = '#FDE68A';
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(252,211,77,0.15)'; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(252,211,77,0.08)'; }}
+        onMouseLeave={e => {
+          const el = e.currentTarget as HTMLButtonElement;
+          el.style.background = 'rgba(252,211,77,0.08)';
+          if (variant === 'chip') el.style.color = '#FCD34D';
+        }}
       >
-        <Sparkles size={12} /> SURPRISE ME
+        <Sparkles size={variant === 'chip' ? 11 : 12} /> SURPRISE ME
       </button>
 
       <AnimatePresence>

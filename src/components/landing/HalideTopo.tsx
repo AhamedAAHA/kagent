@@ -47,8 +47,10 @@ export default function HalideTopo({ className = '' }: Props) {
         ref={canvasRef}
         style={{
           position: 'relative',
-          width: '820px',
-          height: '520px',
+          width: '100%',
+          height: '100%',
+          maxWidth: '820px',
+          maxHeight: '520px',
           transformStyle: 'preserve-3d',
           transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
         }}

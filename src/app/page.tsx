@@ -17,14 +17,15 @@ import CartSidebar from '@/components/ui/CartSidebar';
 import FestivalBanner from '@/components/ui/FestivalBanner';
 import BudgetRing from '@/components/ui/BudgetRing';
 import ShopperDNACard from '@/components/ui/ShopperDNACard';
+import SurpriseMode from '@/components/ui/SurpriseMode';
 
 const HalideTopo = dynamic(() => import('@/components/landing/HalideTopo'), { ssr: false });
 
 const QUICK = [
-  { icon: '🏠', label: "I'M MOVING",   msg: "I'm moving to a new apartment next month, budget Rs. 150,000" },
-  { icon: '🎓', label: 'UNI SETUP',     msg: "I'm starting university in September, need everything for my room and studies" },
-  { icon: '🎂', label: 'BIRTHDAY',      msg: "My mother's birthday is next week, help me find the perfect gift" },
-  { icon: '🎊', label: 'HOSTING',       msg: "I'm hosting 25 people this Saturday for a party" },
+  { icon: '🏠', label: "I'M MOVING", msg: "I'm moving to a new apartment next month, budget Rs. 150,000" },
+  { icon: '🎓', label: 'UNI SETUP', msg: "I'm starting university in September, need everything for my room and studies" },
+  { icon: '🎊', label: 'HOSTING', msg: "I'm hosting 25 people this Saturday for a party" },
+  { icon: '🚀', label: 'REDEPLOY', msg: "I'm redeploying my project this week — help me get any supplies or gear I might need" },
 ];
 
 export default function HomePage() {
@@ -264,18 +265,36 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* 3D topo bg */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <HalideTopo className="w-full h-full" />
+      {/* 3D topo bg — right side so headline doesn't cover it */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 2,
+        display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+        paddingRight: 'clamp(16px, 4vw, 48px)',
+        pointerEvents: 'none',
+      }}>
+        <div style={{ width: 'min(58vw, 820px)', height: 'min(70vh, 520px)', flexShrink: 0 }}>
+          <HalideTopo className="w-full h-full" />
+        </div>
       </div>
 
       {/* Bottom: quick missions + input */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'linear-gradient(to top, rgba(4,2,12,0.98) 65%, transparent)', padding: '44px 40px 28px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
+        <div style={{
+          display: 'flex', flexWrap: 'nowrap', gap: 8, marginBottom: 16,
+          justifyContent: 'center', overflowX: 'auto', paddingBottom: 4,
+          maxWidth: 720, margin: '0 auto 16px',
+          WebkitOverflowScrolling: 'touch',
+        }}>
+          <SurpriseMode onSurprise={msg => handleSend(msg)} variant="chip" />
           {QUICK.map(q => (
-            <button key={q.label} onClick={() => handleSend(q.msg)}
+            <button key={q.label} type="button" onClick={() => handleSend(q.msg)}
               className="font-mono-custom glass"
-              style={{ padding: '6px 13px', borderRadius: 6, fontSize: 8, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.12em', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, transition: 'all 0.2s' }}
+              style={{
+                padding: '6px 13px', borderRadius: 6, fontSize: 8,
+                color: 'rgba(255,255,255,0.45)', letterSpacing: '0.12em',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+                transition: 'all 0.2s', flexShrink: 0, whiteSpace: 'nowrap',
+              }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#fff'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(124,58,237,0.4)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.45)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.07)'; }}
             >
@@ -284,7 +303,7 @@ export default function HomePage() {
           ))}
         </div>
         <div style={{ maxWidth: 580, margin: '0 auto' }}>
-          <ChatInput onSend={handleSend} disabled={isLoading} showSurprise />
+          <ChatInput onSend={handleSend} disabled={isLoading} />
         </div>
       </div>
 
