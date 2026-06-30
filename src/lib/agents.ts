@@ -1,4 +1,5 @@
-import { findProductsForSituation, formatPrice, inferLifeEventFromMessage, LIFE_EVENT_KEYWORDS } from './products';
+import { formatPrice, inferLifeEventFromMessage, LIFE_EVENT_KEYWORDS } from './products';
+import { checkKaprukaDelivery, findKaprukaProductsForSituation } from './kapruka-products';
 import { getFestivalContext, getUpcomingFestival } from './festivals';
 import { getLLMClient, getLLMModel } from './llm';
 import {
@@ -315,20 +316,26 @@ User: "${userMessage}"`;
   }
 
   // ── Shopping Agent ────────────────────────────────────────────────────────
-  yield { type: 'agent_log', agentId: 'shopping', text: 'Searching Sri Lankan product database...' };
+  yield { type: 'agent_log', agentId: 'shopping', text: 'Searching Kapruka live catalog...' };
   const effectiveBudget = userBudget ?? lifeEventData.budget ?? undefined;
 
   yield { type: 'agent_log', agentId: 'shopping', text: `Situation: ${lifeEventData.event} · ${lifeEventData.tags.slice(0, 5).join(', ')}` };
-  const allProducts = findProductsForSituation(userMessage, lifeEventData.tags, effectiveBudget).slice(0, 20);
+  const { products: allProducts, source: catalogSource } = await findKaprukaProductsForSituation(
+    userMessage,
+    lifeEventData.tags,
+    lifeEventData.event,
+    effectiveBudget,
+  );
+  const rankedProducts = allProducts.slice(0, 20);
 
-  yield { type: 'agent_log', agentId: 'shopping', text: `Found ${allProducts.length} matching products` };
-  yield { type: 'agent_log', agentId: 'shopping', text: `Vendors: ${[...new Set(allProducts.map(p => p.vendor))].slice(0,4).join(', ')}` };
-  yield { type: 'agent_done', agentId: 'shopping', text: `${allProducts.length} products from local vendors` };
+  yield { type: 'agent_log', agentId: 'shopping', text: `Found ${rankedProducts.length} products via ${catalogSource === 'kapruka' ? 'Kapruka MCP' : 'local fallback'}` };
+  yield { type: 'agent_log', agentId: 'shopping', text: `Vendors: ${[...new Set(rankedProducts.map(p => p.vendor))].slice(0, 4).join(', ')}` };
+  yield { type: 'agent_done', agentId: 'shopping', text: `${rankedProducts.length} products from ${catalogSource === 'kapruka' ? 'Kapruka' : 'local vendors'}` };
 
   // ── Budget Agent ──────────────────────────────────────────────────────────
   yield { type: 'agent_log', agentId: 'budget', text: 'Building 3-tier bundle optimisation...' };
   await new Promise(r => setTimeout(r, 150));
-  const bundles = buildBundles(allProducts, lifeEventData.event, effectiveBudget);
+  const bundles = buildBundles(rankedProducts, lifeEventData.event, effectiveBudget);
 
   if (bundles.length > 0) {
     yield { type: 'agent_log', agentId: 'budget', text: `Budget tier:   ${formatPrice(bundles[0].totalPrice)}` };
@@ -340,12 +347,19 @@ User: "${userMessage}"`;
   }
 
   // ── Delivery Agent ────────────────────────────────────────────────────────
-  yield { type: 'agent_log', agentId: 'delivery', text: 'Checking delivery availability...' };
-  await new Promise(r => setTimeout(r, 150));
-  const sameDayCount = allProducts.filter(p => p.deliveryDays <= 1).length;
-  yield { type: 'agent_log', agentId: 'delivery', text: `Same-day: ${sameDayCount} items (Colombo)` };
-  yield { type: 'agent_log', agentId: 'delivery', text: `Outstation: 2-3 business days` };
-  yield { type: 'agent_done', agentId: 'delivery', text: `${sameDayCount} items available same day in Colombo` };
+  yield { type: 'agent_log', agentId: 'delivery', text: 'Checking Kapruka delivery availability...' };
+  const topKapruka = rankedProducts.find(p => p.kaprukaId);
+  const deliveryCheck = await checkKaprukaDelivery('Colombo 03', undefined, topKapruka?.kaprukaId);
+  const sameDayCount = rankedProducts.filter(p => p.deliveryDays <= 1).length;
+  if (deliveryCheck?.available) {
+    yield { type: 'agent_log', agentId: 'delivery', text: `Colombo 03: available — LKR ${deliveryCheck.rate?.toLocaleString() ?? '—'} flat rate` };
+  } else {
+    yield { type: 'agent_log', agentId: 'delivery', text: `Same-day: ${sameDayCount} items (Colombo area)` };
+  }
+  yield { type: 'agent_log', agentId: 'delivery', text: `Outstation: 2-3 business days via Kapruka` };
+  yield { type: 'agent_done', agentId: 'delivery', text: deliveryCheck?.available
+    ? `Kapruka delivers to Colombo 03 — flat LKR ${deliveryCheck.rate?.toLocaleString() ?? '—'}`
+    : `${sameDayCount} items available same day in Colombo` };
 
   // ── Memory Agent ──────────────────────────────────────────────────────────
   yield { type: 'agent_log', agentId: 'memory', text: 'Loading user preferences...' };
@@ -354,7 +368,7 @@ User: "${userMessage}"`;
   yield { type: 'agent_done', agentId: 'memory', text: 'Profile personalised for your shopping style' };
 
   // ── Debate ────────────────────────────────────────────────────────────────
-  const debate = buildDebate(lifeEventData.event, lifeEventData.budget, allProducts[0]);
+  const debate = buildDebate(lifeEventData.event, lifeEventData.budget, rankedProducts[0]);
   yield { type: 'debate', data: debate };
 
   // ── Shopper DNA (after 2+ messages) ──────────────────────────────────────
@@ -364,7 +378,11 @@ User: "${userMessage}"`;
   }
 
   // ── Send products & bundles early ─────────────────────────────────────────
-  yield { type: 'products', data: allProducts.slice(0, 12) };
+  const displayProducts = rankedProducts
+    .filter(p => p.image?.startsWith('http'))
+    .concat(rankedProducts.filter(p => !p.image?.startsWith('http')))
+    .slice(0, 12);
+  yield { type: 'products', data: displayProducts };
   if (bundles.length > 0) yield { type: 'bundles', data: bundles };
 
   // ── Concierge Agent — streaming response ──────────────────────────────────
@@ -376,10 +394,10 @@ Detected situation: ${lifeEventData.event} — ${lifeEventData.summary}
 Tags: ${lifeEventData.tags.join(', ')}
 Budget: ${effectiveBudget ? formatPrice(effectiveBudget) : 'open'}
 Festival: ${festivalContext || 'none upcoming'}
-Products found: ${allProducts.length}
+Products found: ${rankedProducts.length} (via ${catalogSource === 'kapruka' ? 'Kapruka live catalog' : 'local catalog'})
 
 Top products:
-${allProducts.slice(0, 8).map(p => `• ${p.name} — ${formatPrice(p.price)} (${p.vendor}, ★${p.rating})`).join('\n')}
+${rankedProducts.slice(0, 8).map(p => `• ${p.name} — ${formatPrice(p.price)} (${p.vendor}, ★${p.rating})`).join('\n')}
 
 ${bundles.length > 0 ? `Bundle tiers: Budget ${formatPrice(bundles[0].totalPrice)} | Mid ${formatPrice(bundles[1].totalPrice)} | Premium ${formatPrice(bundles[2].totalPrice)}` : ''}
 
@@ -393,7 +411,7 @@ Write 2-3 warm, specific paragraphs. Name real products and vendors. Reference S
   const localFallback = buildLocalConciergeResponse(
     lifeEventData.event,
     lifeEventData.summary,
-    allProducts,
+    rankedProducts,
     bundles,
     effectiveBudget,
   );

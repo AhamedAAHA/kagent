@@ -1,6 +1,8 @@
 'use client';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Star } from 'lucide-react';
+import Image from 'next/image';
+import { ShoppingCart, Star, ExternalLink } from 'lucide-react';
 import { Product } from '@/types';
 import { useKAgentStore } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
@@ -15,6 +17,9 @@ const CAT_EMOJI: Record<string, string> = {
 
 export default function ProductCard({ product, index = 0 }: Props) {
   const addToCart = useKAgentStore(s => s.addToCart);
+  const [imgError, setImgError] = useState(false);
+  const imageUrl = product.image?.startsWith('http') ? product.image : '';
+  const showImage = Boolean(imageUrl) && !imgError;
 
   return (
     <motion.div
@@ -24,18 +29,38 @@ export default function ProductCard({ product, index = 0 }: Props) {
       className="product-card glass"
       style={{ borderRadius: 10, padding: 10, display: 'flex', flexDirection: 'column', gap: 8 }}
     >
-      {/* Icon */}
       <div style={{
-        height: 64, borderRadius: 7,
+        height: 96, borderRadius: 7, overflow: 'hidden',
         background: 'rgba(124,58,237,0.06)',
         border: '1px solid rgba(124,58,237,0.1)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 28,
+        position: 'relative',
       }}>
-        {CAT_EMOJI[product.category] ?? '📦'}
+        {showImage ? (
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            unoptimized
+            sizes="160px"
+            style={{ objectFit: 'cover' }}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span style={{ fontSize: 28 }}>{CAT_EMOJI[product.category] ?? '📦'}</span>
+        )}
+        {product.source === 'kapruka' && (
+          <span style={{
+            position: 'absolute', top: 6, right: 6, zIndex: 1,
+            background: 'rgba(124,58,237,0.85)', color: '#fff',
+            fontSize: 7, fontWeight: 700, padding: '2px 5px', borderRadius: 4,
+            fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.06em',
+          }}>
+            KAPRUKA
+          </span>
+        )}
       </div>
 
-      {/* Info */}
       <div>
         <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.85)', lineHeight: 1.4,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
@@ -49,7 +74,6 @@ export default function ProductCard({ product, index = 0 }: Props) {
         </p>
       </div>
 
-      {/* Rating + delivery */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <Star size={10} style={{ fill: '#FCD34D', color: '#FCD34D' }} />
         <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{product.rating}</span>
@@ -58,22 +82,37 @@ export default function ProductCard({ product, index = 0 }: Props) {
         </span>
       </div>
 
-      {/* Price + add */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{formatPrice(product.price)}</span>
-        <button
-          onClick={() => addToCart({ product, quantity: 1 })}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.35)',
-            color: '#A78BFA', fontSize: 10, padding: '4px 8px', borderRadius: 6,
-            cursor: 'pointer', transition: 'all 0.15s ease', fontFamily: 'JetBrains Mono, monospace',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(124,58,237,0.4)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(124,58,237,0.2)'; }}
-        >
-          <ShoppingCart size={10} /> ADD
-        </button>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {product.productUrl && (
+            <a
+              href={product.productUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)',
+                color: 'rgba(255,255,255,0.5)', padding: '4px 6px', borderRadius: 6,
+              }}
+            >
+              <ExternalLink size={10} />
+            </a>
+          )}
+          <button
+            onClick={() => addToCart({ product, quantity: 1 })}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.35)',
+              color: '#A78BFA', fontSize: 10, padding: '4px 8px', borderRadius: 6,
+              cursor: 'pointer', transition: 'all 0.15s ease', fontFamily: 'JetBrains Mono, monospace',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(124,58,237,0.4)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(124,58,237,0.2)'; }}
+          >
+            <ShoppingCart size={10} /> ADD
+          </button>
+        </div>
       </div>
     </motion.div>
   );

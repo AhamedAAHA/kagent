@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { ChatMessage, CartItem, FamilyMember, Agent, ShopperDNA } from '@/types';
+import { ChatMessage, CartItem, FamilyMember, Agent, ShopperDNA, CheckoutSession } from '@/types';
 
 interface KAgentStore {
   // Chat
@@ -42,6 +42,10 @@ interface KAgentStore {
   // Budget
   userBudget?: number;
   setBudget: (v?: number) => void;
+
+  // Checkout
+  checkoutSession: CheckoutSession | null;
+  setCheckoutSession: (s: CheckoutSession | null) => void;
 
   // Terminal log (live stream display)
   terminalLines: { agentId: string; text: string; ts: number }[];
@@ -115,6 +119,9 @@ export const useKAgentStore = create<KAgentStore>()(
 
       userBudget: undefined,
       setBudget: (v) => set({ userBudget: v }),
+
+      checkoutSession: null,
+      setCheckoutSession: (s) => set({ checkoutSession: s }),
 
       terminalLines: [],
       addTerminalLine: (agentId, text) => set(s => ({

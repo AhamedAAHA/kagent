@@ -14,7 +14,7 @@ KAgent is a multi-agent AI shopping platform built for Sri Lanka. Instead of sea
 | 🎯 Concierge | Interprets your life situation and generates the final plan |
 | 🌟 Life Event | Detects moving, birthday, university, hosting, etc. |
 | 💾 Memory | Stores family preferences and purchase history |
-| 🛒 Shopping | Searches 50+ real Sri Lankan products from local vendors |
+| 🛒 Shopping | Searches **live Kapruka catalog** via MCP (flowers, gifts, hampers, cakes) |
 | 🎉 Festival | Detects Avurudu, Vesak, Ramadan, Christmas (60-day window) |
 | 💰 Budget | Optimises cart and builds 3 bundle tiers |
 | 🚚 Delivery | Checks same-day vs scheduled delivery availability |
@@ -54,9 +54,9 @@ Watch all 7 agents pulse and report in real time as they work. Not a chatbot —
 | Language | TypeScript |
 | Styling | Tailwind CSS |
 | Animation | Framer Motion + Canvas 2D (hero) |
-| AI | Anthropic Claude (claude-sonnet-4-6) |
+| AI | Exa (`exa`) with OpenAI fallback |
+| Catalog | **Kapruka MCP** — live products, delivery check, guest checkout |
 | State | Zustand |
-| Product data | Curated Sri Lankan product database (50+ items) |
 | Festivals | Sri Lankan calendar with live day-countdown |
 
 ---
@@ -65,7 +65,7 @@ Watch all 7 agents pulse and report in real time as they work. Not a chatbot —
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/YOUR_USERNAME/kagent.git
+git clone https://github.com/AhamedAAHA/kagent.git
 cd kagent
 ```
 
@@ -78,9 +78,10 @@ npm install
 ```bash
 cp .env.example .env.local
 ```
-Edit `.env.local` and add your Anthropic API key:
+Edit `.env.local`:
 ```
-ANTHROPIC_API_KEY=your_key_here
+EXA_API_KEY=your_exa_api_key_here
+KAPRUKA_MCP_URL=https://mcp.kapruka.com/mcp   # optional; this is the default
 ```
 
 ### 4. Run the development server
@@ -92,13 +93,45 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
+## Kapruka MCP Integration
+
+KAgent uses the [Kapruka MCP server](https://mcp.kapruka.com/mcp) for live catalog search, delivery checks, and real guest checkout.
+
+| MCP tool | KAgent usage |
+|---|---|
+| `kapruka_search_products` | Shopping agent — live product cards with photos |
+| `kapruka_check_delivery` | Delivery agent — Colombo/outstation rates |
+| `kapruka_list_delivery_cities` | Checkout modal — city picker |
+| `kapruka_create_order` | Cart → Kapruka pay link |
+| `kapruka_track_order` | `/api/kapruka/track` |
+
+**MCP server fork:** [github.com/AhamedAAHA/mcp](https://github.com/AhamedAAHA/mcp) (fork of [kapruka/mcp](https://github.com/kapruka/mcp))
+
+Production uses the public endpoint (`https://mcp.kapruka.com/mcp`) — no API key required for the free tier (60 req/min). To self-host your fork:
+
+```bash
+git clone https://github.com/AhamedAAHA/mcp.git
+cd mcp && python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+cp .env.example .env   # needs KAPRUKA_API_KEY from Kapruka
+python cli.py server   # http://localhost:8000/mcp
+```
+
+Then set `KAPRUKA_MCP_URL=http://localhost:8000/mcp` in KAgent `.env.local` (or your deployed MCP URL on Railway/Fly).
+
+See the fork's [deploy/README.md](https://github.com/AhamedAAHA/mcp/blob/main/deploy/README.md) for production VPS setup behind `mcp.kapruka.com`.
+
+---
+
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── api/chat/route.ts      # Main agent orchestration API
-│   ├── page.tsx               # Full app UI
+│   ├── api/
+│   │   ├── chat/route.ts           # Agent orchestration (SSE)
+│   │   └── kapruka/                # Checkout, cities, delivery, track
+│   ├── page.tsx                    # Full app UI
 │   ├── layout.tsx
 │   └── globals.css
 ├── components/
@@ -108,13 +141,16 @@ src/
 │   │   └── ChatInput.tsx      # Input bar + quick prompts
 │   ├── landing/HeroCanvas.tsx # Animated 3D-style hero (Canvas 2D)
 │   └── ui/
-│       ├── ProductCard.tsx    # Individual product card
+│       ├── ProductCard.tsx    # Kapruka product card (live images)
 │       ├── BundleCard.tsx     # 3-tier bundle selector
-│       ├── CartSidebar.tsx    # Sliding cart
+│       ├── CartSidebar.tsx    # Sliding cart + checkout
+│       ├── CheckoutModal.tsx  # Kapruka guest checkout form
 │       └── FestivalBanner.tsx # Festival alert banner
 ├── lib/
-│   ├── agents.ts              # Band of Agents orchestration
-│   ├── products.ts            # 50+ Sri Lankan products database
+│   ├── agents.ts              # 7-agent orchestration
+│   ├── kapruka.ts             # Kapruka MCP HTTP client
+│   ├── kapruka-products.ts    # Catalog search + checkout helpers
+│   ├── products.ts            # Local fallback catalog
 │   ├── festivals.ts           # Sri Lankan festival intelligence
 │   ├── store.ts               # Zustand global state
 │   └── utils.ts               # Helpers
@@ -145,8 +181,12 @@ KAgent:
 
 ---
 
-## Built for Kapruka Hackathon
+## Built for Kapruka Agent Challenge
 
-This project demonstrates what's possible when AI goes beyond search to truly understand human life context in a Sri Lankan setting.
+- **Live catalog** via Kapruka MCP — real products, photos, prices
+- **Guest checkout** — cart → `kapruka_create_order` → pay on kapruka.com
+- **7-agent swarm** — life events, bundles, delivery, festival intelligence
+
+**Live demo:** [kagent-nine.vercel.app](https://kagent-nine.vercel.app)
 
 **Subha Aluth Awuruddak Wewa! 🎉**

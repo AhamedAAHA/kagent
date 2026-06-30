@@ -1,5 +1,6 @@
 'use client';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { ShoppingCart, Check, Truck } from 'lucide-react';
 import { ShoppingBundle } from '@/types';
 import { useKAgentStore } from '@/lib/store';
@@ -12,6 +13,26 @@ const TIER = {
   midrange: { label: 'RECOMMENDED', icon: '⭐', accent: '#A78BFA', dimAccent: 'rgba(124,58,237,0.15)', border: 'rgba(124,58,237,0.35)' },
   premium:  { label: 'COMPLETE',    icon: '👑', accent: '#FCD34D', dimAccent: 'rgba(217,119,6,0.12)', border: 'rgba(217,119,6,0.3)' },
 };
+
+function ItemThumb({ src, name }: { src?: string; name: string }) {
+  if (!src?.startsWith('http')) {
+    return (
+      <div style={{
+        width: 32, height: 32, borderRadius: 6, flexShrink: 0,
+        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+      }}>📦</div>
+    );
+  }
+  return (
+    <div style={{
+      width: 32, height: 32, borderRadius: 6, flexShrink: 0, overflow: 'hidden',
+      position: 'relative', border: '1px solid rgba(255,255,255,0.08)',
+    }}>
+      <Image src={src} alt={name} fill unoptimized sizes="32px" style={{ objectFit: 'cover' }} />
+    </div>
+  );
+}
 
 export default function BundleCard({ bundle, index = 0 }: Props) {
   const addToCart = useKAgentStore(s => s.addToCart);
@@ -57,6 +78,13 @@ export default function BundleCard({ bundle, index = 0 }: Props) {
             <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 8, color: '#34D399', letterSpacing: '0.08em' }}>{bundle.estimatedDelivery}</span>
           </div>
         </div>
+      </div>
+
+      {/* Item thumbnails */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {bundle.items.slice(0, 5).map(item => (
+          <ItemThumb key={item.product.id} src={item.product.image} name={item.product.name} />
+        ))}
       </div>
 
       {/* Items list */}

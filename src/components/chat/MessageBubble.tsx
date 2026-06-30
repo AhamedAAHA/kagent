@@ -63,6 +63,24 @@ export default function MessageBubble({ message, isStreaming }: Props) {
           </div>
         )}
 
+        {/* Kapruka product cards — shown alongside bundles */}
+        {message.products && message.products.length > 0 && (
+          <div style={{ width: '100%' }}>
+            <div style={{
+              fontFamily: 'JetBrains Mono, monospace', fontSize: 8,
+              color: 'rgba(255,255,255,0.25)', letterSpacing: '0.18em', marginBottom: 8,
+            }}>── LIVE KAPRUKA PICKS ──</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+              {message.products
+                .filter(p => p.image?.startsWith('http') || p.source === 'kapruka')
+                .slice(0, 8)
+                .map((product, i) => (
+                  <ProductCard key={product.id} product={product} index={i} />
+                ))}
+            </div>
+          </div>
+        )}
+
         {/* Bundles */}
         {message.bundles && message.bundles.length > 0 && (
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -73,21 +91,6 @@ export default function MessageBubble({ message, isStreaming }: Props) {
             {message.bundles.map((bundle, i) => (
               <BundleCard key={bundle.id} bundle={bundle} index={i} />
             ))}
-          </div>
-        )}
-
-        {/* Products */}
-        {message.products && message.products.length > 0 && !message.bundles && (
-          <div style={{ width: '100%' }}>
-            <div style={{
-              fontFamily: 'JetBrains Mono, monospace', fontSize: 8,
-              color: 'rgba(255,255,255,0.25)', letterSpacing: '0.18em', marginBottom: 8,
-            }}>── PRODUCTS FOUND ──</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {message.products.slice(0, 6).map((product, i) => (
-                <ProductCard key={product.id} product={product} index={i} />
-              ))}
-            </div>
           </div>
         )}
 

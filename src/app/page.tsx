@@ -132,9 +132,11 @@ export default function HomePage() {
             }
             else if (chunk.type === 'bundles') {
               latestBundles = chunk.data as ShoppingBundle[];
+              updateLastMessage({ bundles: latestBundles, products: latestProducts as never });
             }
             else if (chunk.type === 'products') {
               latestProducts = chunk.data as unknown[];
+              updateLastMessage({ products: latestProducts as never, bundles: latestBundles });
             }
             else if (chunk.type === 'debate') {
               latestDebate = chunk.data as AgentDebateMessage[];

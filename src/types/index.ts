@@ -17,12 +17,14 @@ export interface Agent {
 
 export interface Product {
   id: string;
+  kaprukaId?: string;
   name: string;
   nameSinhala?: string;
   price: number;
   category: ProductCategory;
   subcategory: string;
   image: string;
+  productUrl?: string;
   vendor: string;
   location: string;
   inStock: boolean;
@@ -30,6 +32,15 @@ export interface Product {
   tags: string[];
   rating: number;
   reviewCount: number;
+  source?: 'kapruka' | 'local';
+}
+
+export interface CheckoutSession {
+  checkoutUrl: string;
+  orderRef: string;
+  grandTotal: number;
+  currency: string;
+  expiresAt: string;
 }
 
 export type ProductCategory =
