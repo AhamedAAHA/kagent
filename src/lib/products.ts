@@ -1,5 +1,163 @@
 import { Product } from '@/types';
 
+const STOP_WORDS = new Set([
+  'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
+  'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+  'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must',
+  'i', 'me', 'my', 'we', 'our', 'you', 'your', 'he', 'she', 'it', 'they', 'them', 'their',
+  'this', 'that', 'these', 'those', 'what', 'which', 'who', 'whom', 'when', 'where', 'why', 'how',
+  'all', 'each', 'every', 'both', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
+  'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'about', 'into', 'through', 'during',
+  'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again',
+  'further', 'then', 'once', 'here', 'there', 'any', 'can', 'need', 'want', 'get', 'help', 'find',
+  'please', 'rs', 'lkr', 'budget', 'next', 'month', 'week', 'year', 'day', 'days', 'im', "i'm",
+  'everything', 'anything', 'something', 'going', 'am', 'new', 'also', 'really', 'much', 'many',
+]);
+
+/** Keyword → search tags when the life-event LLM call fails or returns empty tags */
+export const LIFE_EVENT_KEYWORDS: Record<string, string[]> = {
+  moving: ['moving', 'apartment', 'mattress', 'fan', 'curtains', 'cleaning', 'kitchen', 'bedroom', 'electrical', 'cooking'],
+  university: ['university', 'study', 'laptop', 'backpack', 'notebook', 'pen', 'calculator', 'water', 'table'],
+  birthday: ['birthday', 'gift', 'flowers', 'chocolate', 'cake', 'card', 'mother', 'anniversary'],
+  hosting: ['hosting', 'party', 'plates', 'drinks', 'kottu', 'ice', 'napkins', 'cake', 'event'],
+  festival: ['festival', 'avurudu', 'vesak', 'gift', 'traditional', 'sweets'],
+  surprise: ['gift', 'chocolate', 'coffee', 'speaker', 'hamper', 'sweet'],
+  redeploy: ['laptop', 'keyboard', 'mouse', 'coffee', 'study', 'work'],
+  general: [],
+};
+
+const WORD_NUMBERS: Record<string, number> = {
+  zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,
+  ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16,
+  seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50,
+  sixty: 60, seventy: 70, eighty: 80, ninety: 90,
+};
+
+const WORD_SCALES: Record<string, number> = {
+  hundred: 100, thousand: 1000, lakh: 100000, lakhs: 100000, million: 1000000,
+};
+
+/** Parse "150,000", "Rs. 150000", or "one hundred fifty thousand" */
+export function parseBudgetFromMessage(message: string): number | null {
+  const lower = message.toLowerCase();
+
+  const numeric =
+    lower.match(/(?:rs\.?|lkr)\s*([\d,]+)/i) ??
+    lower.match(/budget\s*(?:of\s*)?(?:rs\.?\s*)?([\d,]+)/i);
+  if (numeric) {
+    const n = parseInt(numeric[1].replace(/,/g, ''), 10);
+    if (!Number.isNaN(n) && n > 0) return n;
+  }
+
+  const written = lower.match(/budget\s+(?:of\s+)?(.+?)(?:\s+rupees?|\s+lkr|\s+rs)?$/i);
+  if (!written) return null;
+
+  const words = written[1].replace(/-/g, ' ').replace(/,/g, '').trim().split(/\s+/).filter(Boolean);
+  let total = 0;
+  let current = 0;
+
+  for (const word of words) {
+    if (word in WORD_NUMBERS) {
+      current += WORD_NUMBERS[word];
+    } else if (word === 'hundred') {
+      current = (current || 1) * 100;
+    } else if (word in WORD_SCALES) {
+      current = (current || 1) * WORD_SCALES[word];
+      total += current;
+      current = 0;
+    }
+  }
+
+  const result = total + current;
+  return result > 0 ? result : null;
+}
+
+export const SPECIFIC_LIFE_EVENTS = new Set([
+  'moving', 'university', 'birthday', 'hosting', 'surprise', 'redeploy', 'festival',
+]);
+
+export function extractSearchTerms(query: string): string[] {
+  return [...new Set(
+    query
+      .toLowerCase()
+      .replace(/rs\.?\s*[\d,]+/gi, '')
+      .replace(/[^\w\s-]/g, ' ')
+      .split(/[\s,]+/)
+      .map(t => t.trim())
+      .filter(t => t.length >= 3 && !STOP_WORDS.has(t)),
+  )];
+}
+
+function productSearchText(p: Product): string {
+  return [p.name, p.nameSinhala, p.category, p.subcategory, ...p.tags].join(' ').toLowerCase();
+}
+
+function scoreProduct(p: Product, terms: string[]): number {
+  if (terms.length === 0) return 0;
+  const text = productSearchText(p);
+  let score = 0;
+  for (const term of terms) {
+    if (p.tags.some(t => t === term || t.includes(term) || term.includes(t))) score += 12;
+    if (p.category === term || p.subcategory === term) score += 10;
+    if (p.name.toLowerCase().includes(term)) score += 8;
+    if (text.includes(term)) score += 4;
+  }
+  score += p.rating * 0.5;
+  return score;
+}
+
+export function inferLifeEventFromMessage(message: string): {
+  event: string;
+  tags: string[];
+  budget: number | null;
+  urgency: string;
+  summary: string;
+} {
+  const lower = message.toLowerCase();
+  const budget = parseBudgetFromMessage(message);
+
+  const rules: { event: string; patterns: RegExp[] }[] = [
+    { event: 'moving', patterns: [/mov(ing|e)/, /apartment/, /new home/, /relocate/] },
+    { event: 'university', patterns: [/universit/, /uni\s+setup/, /college/, /starting\s+uni/] },
+    { event: 'birthday', patterns: [/birthday/, /bday/, /mother'?s?\s+birthday/, /anniversary/] },
+    { event: 'hosting', patterns: [/hosting/, /host\s+\d+/, /party/, /guests?/, /people\s+this/] },
+    { event: 'festival', patterns: [/avurudu/, /vesak/, /deepavali/, /christmas/, /eid/, /festival/] },
+    { event: 'surprise', patterns: [/surprise\s+me/] },
+    { event: 'redeploy', patterns: [/redeploy/, /deploy(ment|ing)?/] },
+  ];
+
+  let event = 'general';
+  for (const rule of rules) {
+    if (rule.patterns.some(p => p.test(lower))) {
+      event = rule.event;
+      break;
+    }
+  }
+
+  const keywordTags = LIFE_EVENT_KEYWORDS[event] ?? [];
+  const messageTerms = extractSearchTerms(message);
+  const tags = [...new Set([...keywordTags, ...messageTerms])].slice(0, 10);
+
+  const summaries: Record<string, string> = {
+    moving: 'Setting up a new home in Sri Lanka',
+    university: 'Getting ready for university',
+    birthday: 'Finding the perfect birthday gift',
+    hosting: 'Preparing to host guests',
+    festival: 'Shopping for an upcoming festival',
+    surprise: 'Curating a surprise gift pack',
+    redeploy: 'Getting geared up for a project redeploy',
+    general: 'Building a personalised shopping plan',
+  };
+
+  return {
+    event,
+    tags,
+    budget,
+    urgency: 'flexible' as const,
+    summary: summaries[event] ?? summaries.general,
+  };
+}
+
 export const SRI_LANKA_PRODUCTS: Product[] = [
   // Food & Groceries
   { id: 'f001', name: 'Anchor Full Cream Milk Powder 400g', nameSinhala: 'ඇංකර් කිරිපිටි', price: 890, category: 'groceries', subcategory: 'dairy', image: '/products/milk-powder.jpg', vendor: 'Cargills Food City', location: 'Colombo', inStock: true, deliveryDays: 1, tags: ['dairy', 'milk', 'breakfast'], rating: 4.5, reviewCount: 234 },
@@ -69,14 +227,16 @@ export const SRI_LANKA_PRODUCTS: Product[] = [
 ];
 
 export function searchProducts(query: string, budget?: number): Product[] {
-  const q = query.toLowerCase();
-  const terms = q.split(/[\s,]+/).filter(Boolean);
-  
-  return SRI_LANKA_PRODUCTS.filter(p => {
-    if (budget && p.price > budget) return false;
-    const searchText = [p.name, p.nameSinhala, p.category, p.subcategory, ...p.tags].join(' ').toLowerCase();
-    return terms.some(term => searchText.includes(term));
-  }).sort((a, b) => b.rating - a.rating);
+  const terms = extractSearchTerms(query);
+  if (terms.length === 0) return [];
+
+  const scored = SRI_LANKA_PRODUCTS
+    .filter(p => !budget || p.price <= budget)
+    .map(p => ({ product: p, score: scoreProduct(p, terms) }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  return scored.map(({ product }) => product);
 }
 
 export function getProductsByCategory(category: string): Product[] {
@@ -84,9 +244,52 @@ export function getProductsByCategory(category: string): Product[] {
 }
 
 export function getProductsByTags(tags: string[]): Product[] {
-  return SRI_LANKA_PRODUCTS.filter(p =>
-    tags.some(tag => p.tags.includes(tag) || p.category === tag || p.subcategory === tag)
-  ).sort((a, b) => b.rating - a.rating);
+  if (tags.length === 0) return [];
+
+  const normalised = tags.map(t => t.toLowerCase().trim()).filter(Boolean);
+
+  const scored = SRI_LANKA_PRODUCTS
+    .map(p => {
+      let score = 0;
+      const text = productSearchText(p);
+      for (const tag of normalised) {
+        if (p.tags.some(t => t === tag || t.includes(tag) || tag.includes(t))) score += 15;
+        if (p.category === tag || p.subcategory === tag) score += 12;
+        if (p.name.toLowerCase().includes(tag)) score += 10;
+        if (text.includes(tag)) score += 5;
+      }
+      return { product: p, score };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  return scored.map(({ product }) => product);
+}
+
+/** Merge tag + text search, ranked by relevance */
+export function findProductsForSituation(
+  userMessage: string,
+  tags: string[],
+  budget?: number,
+): Product[] {
+  const byTags = getProductsByTags(tags);
+  const byQuery = searchProducts([...tags, userMessage].join(' '), budget);
+
+  const merged = new Map<string, { product: Product; score: number }>();
+  byTags.forEach((p, i) => {
+    merged.set(p.id, { product: p, score: (merged.get(p.id)?.score ?? 0) + 100 - i });
+  });
+  byQuery.forEach((p, i) => {
+    const existing = merged.get(p.id);
+    merged.set(p.id, { product: p, score: (existing?.score ?? 0) + 80 - i });
+  });
+
+  const results = [...merged.values()]
+    .filter(({ product }) => !budget || product.price <= budget)
+    .sort((a, b) => b.score - a.score)
+    .map(({ product }) => product);
+
+  return results;
 }
 
 export function formatPrice(price: number): string {

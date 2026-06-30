@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { searchProducts, getProductsByTags, formatPrice } from './products';
+import { findProductsForSituation, formatPrice, inferLifeEventFromMessage, LIFE_EVENT_KEYWORDS } from './products';
 import { getFestivalContext, getUpcomingFestival } from './festivals';
 import {
   Product, ShoppingBundle, CartItem, AgentActivity, AgentName,
@@ -29,8 +29,45 @@ function makeActivity(
   return { agentId, status, message, timestamp: new Date(), logLines };
 }
 
-function buildBundles(items: Product[], budget?: number): ShoppingBundle[] {
+function buildBundles(items: Product[], event = 'general'): ShoppingBundle[] {
   if (items.length === 0) return [];
+
+  const labels: Record<string, { budget: string; mid: string; premium: string; budgetDesc: string; midDesc: string; premiumDesc: string }> = {
+    moving: {
+      budget: 'Move-In Essentials', mid: 'Comfortable Apartment', premium: 'Complete Home Setup',
+      budgetDesc: 'Core items to get settled quickly', midDesc: 'Everything for a comfortable new place', premiumDesc: 'Full apartment setup — nothing missed',
+    },
+    university: {
+      budget: 'Study Starter', mid: 'Campus Ready', premium: 'Full Uni Setup',
+      budgetDesc: 'Basics for your first weeks on campus', midDesc: 'Best value study and dorm essentials', premiumDesc: 'Laptop, gear, and everything for university life',
+    },
+    birthday: {
+      budget: 'Sweet Gesture', mid: 'Thoughtful Gift', premium: 'Grand Celebration',
+      budgetDesc: 'A lovely gift without breaking the bank', midDesc: 'Flowers, treats, and a personal touch', premiumDesc: 'The complete birthday surprise package',
+    },
+    hosting: {
+      budget: 'Casual Gathering', mid: 'Party Ready', premium: 'Full Host Package',
+      budgetDesc: 'Essentials for a small get-together', midDesc: 'Food, drinks, and supplies for your guests', premiumDesc: 'Catering, drinks, and everything for a big party',
+    },
+    festival: {
+      budget: 'Festival Basics', mid: 'Traditional Celebration', premium: 'Grand Festival',
+      budgetDesc: 'Key items for the occasion', midDesc: 'Traditional gifts and festive essentials', premiumDesc: 'Premium hampers and full festival setup',
+    },
+    surprise: {
+      budget: 'Little Surprise', mid: 'Curated Pick', premium: 'Premium Mystery',
+      budgetDesc: 'A fun surprise under budget', midDesc: 'Hand-picked surprise favourites', premiumDesc: 'The ultimate surprise gift collection',
+    },
+    redeploy: {
+      budget: 'Desk Essentials', mid: 'Work Ready', premium: 'Full Dev Setup',
+      budgetDesc: 'Gear to power through your redeploy', midDesc: 'Productivity tools and comforts', premiumDesc: 'Complete workspace and focus kit',
+    },
+    general: {
+      budget: 'Budget Setup', mid: 'Recommended Setup', premium: 'Complete Setup',
+      budgetDesc: 'Essential items within a tight budget', midDesc: 'Best value for money — most popular choice', premiumDesc: 'Everything you need, nothing left out',
+    },
+  };
+
+  const L = labels[event] ?? labels.general;
   const sorted = [...items].sort((a, b) => a.price - b.price);
   const total = (arr: Product[]) => arr.reduce((s, p) => s + p.price, 0);
   const maxDays = (arr: CartItem[]) => Math.max(...arr.map(i => i.product.deliveryDays));
@@ -42,9 +79,9 @@ function buildBundles(items: Product[], budget?: number): ShoppingBundle[] {
   const p = toCart(sorted);
 
   return [
-    { id: 'bundle-budget',   name: 'Budget Setup',      description: 'Essential items within a tight budget',          tier: 'budget',   items: b, totalPrice: total(b.map(i=>i.product)), estimatedDelivery: label(maxDays(b)) },
-    { id: 'bundle-mid',      name: 'Recommended Setup', description: 'Best value for money — most popular choice',     tier: 'midrange', items: m, totalPrice: total(m.map(i=>i.product)), estimatedDelivery: label(maxDays(m)) },
-    { id: 'bundle-premium',  name: 'Complete Setup',    description: 'Everything you need, nothing left out',          tier: 'premium',  items: p, totalPrice: total(p.map(i=>i.product)), estimatedDelivery: label(maxDays(p)) },
+    { id: 'bundle-budget',  name: L.budget,  description: L.budgetDesc,  tier: 'budget',   items: b, totalPrice: total(b.map(i=>i.product)), estimatedDelivery: label(maxDays(b)) },
+    { id: 'bundle-mid',     name: L.mid,     description: L.midDesc,     tier: 'midrange', items: m, totalPrice: total(m.map(i=>i.product)), estimatedDelivery: label(maxDays(m)) },
+    { id: 'bundle-premium', name: L.premium, description: L.premiumDesc, tier: 'premium',  items: p, totalPrice: total(p.map(i=>i.product)), estimatedDelivery: label(maxDays(p)) },
   ];
 }
 
@@ -83,7 +120,9 @@ function inferDNA(
   if (lifeEvent === 'hosting') traits.push('Social host');
   if (traits.length === 0) traits.push('Versatile shopper');
 
-  const topCategories = [...new Set(tags.slice(0, 3))];
+  const topCategories = lifeEvent !== 'general' && LIFE_EVENT_KEYWORDS[lifeEvent]
+    ? LIFE_EVENT_KEYWORDS[lifeEvent].slice(0, 3)
+    : [...new Set(tags.slice(0, 3))];
   return {
     traits: traits.slice(0, 4),
     budgetStyle: budget ? (budget < 20000 ? 'Frugal' : budget < 80000 ? 'Balanced' : 'Generous') : 'Flexible',
@@ -119,7 +158,8 @@ Respond ONLY with valid JSON — no markdown, no extra text:
 
 User: "${userMessage}"`;
 
-  let lifeEventData = { event: 'general', tags: [] as string[], budget: null as number | null, urgency: 'flexible', summary: '' };
+  let lifeEventData = inferLifeEventFromMessage(userMessage);
+  const localEvent = lifeEventData.event;
 
   try {
     yield { type: 'agent_log', agentId: 'life-event', text: 'Detecting life situation...' };
@@ -129,12 +169,41 @@ User: "${userMessage}"`;
       messages: [{ role: 'user', content: lifeEventPrompt }],
     });
     const raw = leRes.choices[0]?.message?.content ?? '{}';
-    lifeEventData = JSON.parse(raw.replace(/```json?|```/g, '').trim());
+    const parsed = JSON.parse(raw.replace(/```json?|```/g, '').trim());
+
+    // Keep strong local detection — don't let LLM downgrade moving → general
+    if (parsed.event && parsed.event !== 'general') {
+      lifeEventData.event = parsed.event;
+    } else if (localEvent !== 'general') {
+      lifeEventData.event = localEvent;
+    } else if (parsed.event) {
+      lifeEventData.event = parsed.event;
+    }
+
+    if (Array.isArray(parsed.tags) && parsed.tags.length > 0) {
+      lifeEventData.tags = [...new Set([...lifeEventData.tags, ...parsed.tags.map(String)])];
+    }
+    if (parsed.budget != null) {
+      const llmBudget = Number(parsed.budget);
+      if (!Number.isNaN(llmBudget) && llmBudget > 0) lifeEventData.budget = llmBudget;
+    }
+    if (parsed.urgency) lifeEventData.urgency = parsed.urgency;
+    if (parsed.summary) lifeEventData.summary = parsed.summary;
+
+    // Re-apply event keyword tags if LLM left us with a specific event
+    if (lifeEventData.event !== 'general' && LIFE_EVENT_KEYWORDS[lifeEventData.event]) {
+      lifeEventData.tags = [...new Set([
+        ...LIFE_EVENT_KEYWORDS[lifeEventData.event],
+        ...lifeEventData.tags,
+      ])].slice(0, 12);
+    }
+
     yield { type: 'agent_log', agentId: 'life-event', text: `Detected: ${lifeEventData.event}` };
     yield { type: 'agent_log', agentId: 'life-event', text: `Tags: ${lifeEventData.tags.join(', ')}` };
     yield { type: 'agent_log', agentId: 'life-event', text: lifeEventData.budget ? `Budget: ${formatPrice(lifeEventData.budget)}` : 'No budget specified' };
   } catch {
-    yield { type: 'agent_log', agentId: 'life-event', text: 'Fallback: using general shopping mode' };
+    yield { type: 'agent_log', agentId: 'life-event', text: 'Using local keyword detection' };
+    yield { type: 'agent_log', agentId: 'life-event', text: `Detected: ${lifeEventData.event} — ${lifeEventData.tags.join(', ')}` };
   }
   yield { type: 'agent_done', agentId: 'life-event', text: `${lifeEventData.event} — ${lifeEventData.summary || 'analysed'}` };
 
@@ -144,11 +213,15 @@ User: "${userMessage}"`;
 
   if (upcomingFestival && upcomingFestival.daysUntil <= 14) {
     yield { type: 'agent_log', agentId: 'festival', text: `${upcomingFestival.name} detected — ${upcomingFestival.daysUntil} days away` };
-    yield { type: 'agent_log', agentId: 'festival', text: `Adding: ${upcomingFestival.suggestedCategories.join(', ')}` };
-    if (!lifeEventData.tags.includes('festival')) {
+    // Only mix festival products when the user is shopping for a festival (not moving/hosting/etc.)
+    if (lifeEventData.event === 'festival' || lifeEventData.event === 'general') {
+      yield { type: 'agent_log', agentId: 'festival', text: `Adding: ${upcomingFestival.suggestedCategories.join(', ')}` };
       lifeEventData.tags.push(...(upcomingFestival.suggestedCategories as string[]));
+      yield { type: 'agent_done', agentId: 'festival', text: `${upcomingFestival.name} in ${upcomingFestival.daysUntil} days — recommendations added` };
+    } else {
+      yield { type: 'agent_log', agentId: 'festival', text: `${upcomingFestival.name} noted — keeping focus on ${lifeEventData.event}` };
+      yield { type: 'agent_done', agentId: 'festival', text: `Festival flagged; plan stays focused on ${lifeEventData.event}` };
     }
-    yield { type: 'agent_done', agentId: 'festival', text: `${upcomingFestival.name} in ${upcomingFestival.daysUntil} days — recommendations added` };
   } else {
     yield { type: 'agent_log', agentId: 'festival', text: festivalContext || 'No major festival in next 2 weeks' };
     yield { type: 'agent_done', agentId: 'festival', text: 'Calendar checked — no immediate festivals' };
@@ -157,12 +230,9 @@ User: "${userMessage}"`;
   // ── Shopping Agent ────────────────────────────────────────────────────────
   yield { type: 'agent_log', agentId: 'shopping', text: 'Searching Sri Lankan product database...' };
   const effectiveBudget = userBudget ?? lifeEventData.budget ?? undefined;
-  const searchQuery = lifeEventData.tags.join(' ') || userMessage;
 
-  yield { type: 'agent_log', agentId: 'shopping', text: `Query: "${searchQuery.slice(0, 50)}"` };
-  const foundProducts = searchProducts(searchQuery, effectiveBudget);
-  const tagProducts = getProductsByTags(lifeEventData.tags);
-  const allProducts = [...new Map([...foundProducts, ...tagProducts].map(p => [p.id, p])).values()].slice(0, 20);
+  yield { type: 'agent_log', agentId: 'shopping', text: `Situation: ${lifeEventData.event} · ${lifeEventData.tags.slice(0, 5).join(', ')}` };
+  const allProducts = findProductsForSituation(userMessage, lifeEventData.tags, effectiveBudget).slice(0, 20);
 
   yield { type: 'agent_log', agentId: 'shopping', text: `Found ${allProducts.length} matching products` };
   yield { type: 'agent_log', agentId: 'shopping', text: `Vendors: ${[...new Set(allProducts.map(p => p.vendor))].slice(0,4).join(', ')}` };
@@ -171,7 +241,7 @@ User: "${userMessage}"`;
   // ── Budget Agent ──────────────────────────────────────────────────────────
   yield { type: 'agent_log', agentId: 'budget', text: 'Building 3-tier bundle optimisation...' };
   await new Promise(r => setTimeout(r, 150));
-  const bundles = buildBundles(allProducts, effectiveBudget);
+  const bundles = buildBundles(allProducts, lifeEventData.event);
 
   if (bundles.length > 0) {
     yield { type: 'agent_log', agentId: 'budget', text: `Budget tier:   ${formatPrice(bundles[0].totalPrice)}` };
