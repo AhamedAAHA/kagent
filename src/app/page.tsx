@@ -91,7 +91,7 @@ function HomePageInner() {
     return () => { cancelled = true; };
   }, []);
 
-  // Refresh live price when returning to landing
+  // Refresh live spotlight when returning to landing or when cart changes
   useEffect(() => {
     if (!chatOpen) {
       fetch('/api/kapruka/spotlight')
@@ -99,7 +99,7 @@ function HomePageInner() {
         .then(setSpotlight)
         .catch(() => setSpotlight(null));
     }
-  }, [chatOpen]);
+  }, [chatOpen, cartTotal, cartCount]);
 
   const activeAgents = agents.filter(a => a.status === 'thinking').length;
 

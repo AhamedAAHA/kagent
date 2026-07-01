@@ -33,42 +33,36 @@ export default function HalideTopo({
   const isLanding = mode === 'landing';
   const waitingSpotlight = spotlight === null;
   const livePrice = spotlight?.featuredPrice ?? 0;
+  const hasCart = cartCount > 0 && cartTotal > 0;
+  const showCartValue = hasCart;
 
-  const displayTotal = isLanding
-    ? livePrice
-    : cartTotal > 0
-      ? cartTotal
-      : livePrice;
+  const displayTotal = showCartValue ? cartTotal : livePrice;
 
-  const displayLabel = isLanding
-    ? (spotlight?.live ? 'KAPRUKA LIVE' : waitingSpotlight ? 'KAPRUKA LIVE' : 'OPTIMISED CART')
-    : cartTotal > 0
-      ? 'YOUR CART'
+  const displayLabel = showCartValue
+    ? 'YOUR CART'
+    : waitingSpotlight
+      ? 'KAPRUKA LIVE'
       : spotlight?.live
         ? 'KAPRUKA LIVE'
-        : waitingSpotlight
-          ? 'KAPRUKA LIVE'
-          : 'OPTIMISED CART';
+        : 'OPTIMISED CART';
 
-  const subLabel = isLanding
-    ? spotlight?.live
-      ? spotlight.featuredName.slice(0, 28) + (spotlight.featuredName.length > 28 ? '…' : '')
+  const featuredName = spotlight?.featuredName
+    ? spotlight.featuredName.slice(0, 28) + (spotlight.featuredName.length > 28 ? '…' : '')
+    : '';
+
+  const subLabel = showCartValue
+    ? `${cartCount} ITEM${cartCount > 1 ? 'S' : ''} IN CART`
+    : spotlight?.live
+      ? featuredName
       : waitingSpotlight
         ? 'FETCHING LIVE CATALOG…'
-        : 'CONNECTING TO MCP…'
-    : cartCount > 0
-      ? `${cartCount} ITEM${cartCount > 1 ? 'S' : ''} IN CART`
-      : spotlight?.live
-        ? spotlight.featuredName.slice(0, 28) + (spotlight.featuredName.length > 28 ? '…' : '')
-        : waitingSpotlight
-          ? 'FETCHING LIVE CATALOG…'
-          : 'CONNECTING TO MCP…';
+        : 'CONNECTING TO MCP…';
 
-  const cartHint = isLanding && cartCount > 0
-    ? `${cartCount} item${cartCount > 1 ? 's' : ''} · ${formatPrice(cartTotal)} in cart`
+  const cartHint = isLanding && hasCart && spotlight?.live && livePrice > 0
+    ? `Live pick: ${featuredName} · ${formatPrice(livePrice)}`
     : null;
 
-  const showLoading = waitingSpotlight && (isLanding || cartTotal === 0);
+  const showLoading = !showCartValue && waitingSpotlight;
 
   useEffect(() => {
     const canvas = canvasRef.current;
