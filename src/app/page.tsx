@@ -267,7 +267,7 @@ function HomePageInner() {
 
   /* ── LANDING ─────────────────────────────────────────────────────────── */
   if (!chatOpen) return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh', overflow: 'hidden' }}>
+    <div className="landing-root" style={{ background: 'var(--bg)', minHeight: '100vh', overflow: 'hidden' }}>
       {/* Grain */}
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
         <filter id="grain">
@@ -289,8 +289,8 @@ function HomePageInner() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <LanguageToggle lang={lang} onChange={setUiLanguage} />
           {upcomingFestival && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.25)', borderRadius: 20, padding: '4px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 8, color: 'rgba(217,119,6,0.85)', letterSpacing: '0.1em' }}>
-              🎊 {upcomingFestival.name.toUpperCase()} IN {upcomingFestival.daysUntil}D
+            <div className="landing-festival-badge" style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.25)', borderRadius: 20, padding: '4px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 8, color: 'rgba(217,119,6,0.85)', letterSpacing: '0.1em' }}>
+              🎊 <span className="festival-badge-long">{upcomingFestival.name.toUpperCase()} IN </span>{upcomingFestival.daysUntil}D
             </div>
           )}
           <button onClick={() => setCartOpen(true)} style={{ position: 'relative', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9, padding: '7px 9px', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex' }}>
@@ -321,9 +321,10 @@ function HomePageInner() {
           >
             {L.landingSubtitle}
           </motion.p>
+          <p className="landing-subtitle-mobile">{L.landingSubtitleMobile}</p>
         </div>
 
-        <div className="landing-cta-row" style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', pointerEvents: 'auto', gap: 16 }}>
+        <div className="landing-cta-row" style={{ gridColumn: '1 / -1', gridRow: '3', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', pointerEvents: 'auto', gap: 16 }}>
           <div className="landing-meta-bl font-mono-custom" style={{ fontSize: 9, color: 'var(--text-faint)', lineHeight: 2.2 }}>
             <div>{L.landingMeta(voiceOk)}</div>
             <div>LIFE SITUATION → COMPLETE SOLUTION → CART</div>
@@ -360,7 +361,7 @@ function HomePageInner() {
 
       {/* Bottom: quick missions + input */}
       <div className="landing-bottom" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'linear-gradient(to top, rgba(4,2,12,0.98) 65%, transparent)', padding: '44px 40px 28px' }}>
-        <div style={{
+        <div className="landing-prompts" style={{
           display: 'flex', flexWrap: 'nowrap', gap: 8, marginBottom: 16,
           justifyContent: 'center', overflowX: 'auto', paddingBottom: 4,
           maxWidth: 720, margin: '0 auto 16px',
@@ -394,14 +395,14 @@ function HomePageInner() {
 
   /* ── CHAT INTERFACE ──────────────────────────────────────────────────── */
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)' }}>
+    <div className="chat-shell" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)' }}>
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
         <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" /><feColorMatrix type="saturate" values="0" /></filter>
       </svg>
       <div className="grain-overlay" />
 
       {/* Nav */}
-      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(20px)', flexShrink: 0, zIndex: 30 }}>
+      <nav className="chat-nav" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(20px)', flexShrink: 0, zIndex: 30 }}>
         <button onClick={() => setChatOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
           <Logo size="sm" />
         </button>
@@ -412,6 +413,7 @@ function HomePageInner() {
             onClick={() => setShowTerminal(v => !v)}
             aria-pressed={showTerminal}
             aria-label={L.terminalToggle}
+            className="chat-terminal-btn"
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               background: showTerminal ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.04)',
@@ -422,7 +424,7 @@ function HomePageInner() {
               letterSpacing: '0.1em', transition: 'all 0.2s',
             }}
           >
-            <Terminal size={12} /> {L.terminalToggle}
+            <Terminal size={12} /> <span className="chat-terminal-label">{L.terminalToggle}</span>
           </button>
 
           {upcomingFestival && (
@@ -451,7 +453,6 @@ function HomePageInner() {
           padding: 14, display: 'flex', flexDirection: 'column', gap: 14,
           overflowY: 'auto', flexShrink: 0,
         }} className="hide-mobile">
-          <style>{`.hide-mobile { display: none; } @media(min-width:900px){.hide-mobile{display:flex !important;}}`}</style>
 
           <div>
             <div className="font-mono-custom" style={{ fontSize: 8, color: 'var(--text-faint)', letterSpacing: '0.18em', marginBottom: 10 }}>{L.agentSwarm}</div>
@@ -472,8 +473,8 @@ function HomePageInner() {
         </aside>
 
         {/* Chat column */}
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: 22 }}>
+        <main className="chat-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+          <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: 22 }}>
             {messages.length === 0 && (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 10, color: 'var(--text-faint)' }}>
                 <MessageSquare size={32} style={{ opacity: 0.3 }} />
@@ -502,7 +503,7 @@ function HomePageInner() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div style={{ padding: '10px 18px 18px', borderTop: '1px solid var(--border)' }}>
+          <div className="chat-input-bar" style={{ padding: '10px 18px 18px', borderTop: '1px solid var(--border)' }}>
             <ChatInput onSend={handleSend} disabled={isLoading} lang={lang} />
           </div>
         </main>
