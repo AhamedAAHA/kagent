@@ -124,6 +124,31 @@ body {
   white-space: nowrap;
 }
 
+/* Desktop: headline left column only — 3D hero stays visible on the right */
+@media (min-width: 900px) {
+  .landing-headline-wrap {
+    grid-column: 1 !important;
+    grid-row: 2;
+    max-width: min(46vw, 500px);
+    padding-right: 0;
+    align-self: center;
+  }
+
+  .landing-headline {
+    font-size: clamp(2.25rem, 3.8vw, 4.75rem);
+    line-height: 0.88;
+  }
+
+  .landing-hero-3d {
+    width: min(52vw, 720px) !important;
+    height: min(68vh, 500px) !important;
+  }
+
+  .terminal-mobile-overlay {
+    display: none !important;
+  }
+}
+
 @media (max-width: 899px) {
   .landing-headline-wrap {
     padding-right: 0;
@@ -131,15 +156,23 @@ body {
     max-width: 100%;
   }
 
+  .landing-headline {
+    font-size: clamp(1.85rem, 8.5vw, 2.75rem);
+    line-height: 0.95;
+  }
+
+  .landing-headline-line3 {
+    white-space: normal;
+  }
+
+  .headline-slide-viewport {
+    min-width: 9ch;
+    height: 1.15em;
+  }
+
   .terminal-mobile-overlay {
     display: flex !important;
     flex-direction: column;
-  }
-}
-
-@media (min-width: 900px) {
-  .terminal-mobile-overlay {
-    display: none !important;
   }
 }
 

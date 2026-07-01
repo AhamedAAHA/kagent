@@ -345,7 +345,7 @@ function HomePageInner() {
         paddingRight: 'clamp(16px, 4vw, 48px)',
         pointerEvents: 'none',
       }}>
-        <div style={{ width: 'min(58vw, 820px)', height: 'min(70vh, 520px)', flexShrink: 0 }}>
+        <div className="landing-hero-3d" style={{ width: 'min(58vw, 820px)', height: 'min(70vh, 520px)', flexShrink: 0 }}>
           <HalideTopo
             className="w-full h-full"
             mode="landing"
