@@ -7,6 +7,12 @@ export const metadata: Metadata = {
   keywords: ['Sri Lanka', 'shopping', 'AI', 'agent', 'concierge', 'Sinhala', 'Colombo'],
   manifest: '/manifest.json',
   themeColor: '#7C3AED',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

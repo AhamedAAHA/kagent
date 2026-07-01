@@ -57,15 +57,15 @@ export default function ProductCarousel({ products, onSelectProduct, lang = 'en'
       <div
         ref={scrollRef}
         style={{
-          display: 'flex', gap: 10, overflowX: 'auto', scrollSnapType: 'x mandatory',
-          padding: '4px 28px', WebkitOverflowScrolling: 'touch',
+          display: 'flex', gap: 'clamp(8px, 2vw, 10px)', overflowX: 'auto', scrollSnapType: 'x mandatory',
+          padding: 'clamp(2px, 1vw, 4px) clamp(20px, 5vw, 28px)', WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
         }}
       >
         {products.map((product, i) => (
           <div
             key={product.id}
-            style={{ minWidth: 160, maxWidth: 160, flexShrink: 0, scrollSnapAlign: 'start' }}
+            style={{ minWidth: 'clamp(140px, 30vw, 160px)', maxWidth: 'clamp(140px, 30vw, 160px)', flexShrink: 0, scrollSnapAlign: 'start' }}
           >
             <ProductCard product={product} index={i} compact onView={onSelectProduct} lang={lang} />
           </div>

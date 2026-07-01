@@ -28,21 +28,21 @@ export default function ChatInput({ onSend, disabled, showSurprise = false, lang
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(6px, 2vw, 8px)' }}>
       {showSurprise && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(6px, 2vw, 8px)' }}>
           <SurpriseMode onSurprise={msg => onSend(msg)} />
         </div>
       )}
 
       <div style={{
-        display: 'flex', alignItems: 'flex-end', gap: 8,
+        display: 'flex', alignItems: 'flex-end', gap: 'clamp(6px, 2vw, 8px)',
         background: 'rgba(255,255,255,0.04)',
         border: '1px solid rgba(255,255,255,0.09)',
-        borderRadius: 14, padding: '10px 10px 10px 16px',
+        borderRadius: 14, padding: 'clamp(8px, 2vw, 10px) clamp(8px, 2vw, 10px) clamp(8px, 2vw, 10px) clamp(12px, 3vw, 16px)',
         transition: 'border-color 0.2s',
       }}>
-        <Sparkles size={13} style={{ color: 'rgba(124,58,237,0.5)', flexShrink: 0, marginBottom: 12 }} />
+        <Sparkles size={13} style={{ color: 'rgba(124,58,237,0.5)', flexShrink: 0, marginBottom: 'clamp(10px, 2vw, 12px)' }} />
         <textarea
           value={value}
           onChange={e => setValue(e.target.value)}
@@ -53,9 +53,9 @@ export default function ChatInput({ onSend, disabled, showSurprise = false, lang
           className="chat-input"
           style={{
             flex: 1, background: 'transparent', border: 'none', outline: 'none',
-            color: 'var(--text)', fontSize: 13, resize: 'none',
+            color: 'var(--text)', fontSize: 'clamp(12px, 2.5vw, 13px)', resize: 'none',
             fontFamily: lang === 'si' ? 'Inter, "Noto Sans Sinhala", sans-serif' : 'Inter, sans-serif',
-            lineHeight: 1.6, minHeight: 40, maxHeight: 110, paddingTop: 8,
+            lineHeight: 1.6, minHeight: 'clamp(36px, 8vw, 40px)', maxHeight: 110, paddingTop: 'clamp(6px, 1.5vw, 8px)',
           }}
           onInput={e => {
             const el = e.currentTarget;
@@ -85,7 +85,7 @@ export default function ChatInput({ onSend, disabled, showSurprise = false, lang
           disabled={!value.trim() || disabled}
           aria-label={L.send}
           style={{
-            width: 38, height: 38, borderRadius: 10, border: 'none', flexShrink: 0,
+            width: 'clamp(34px, 8vw, 38px)', height: 'clamp(34px, 8vw, 38px)', borderRadius: 10, border: 'none', flexShrink: 0,
             background: value.trim() && !disabled ? '#7C3AED' : 'rgba(124,58,237,0.15)',
             color: value.trim() && !disabled ? '#fff' : 'rgba(255,255,255,0.2)',
             cursor: value.trim() && !disabled ? 'pointer' : 'not-allowed',
@@ -98,7 +98,7 @@ export default function ChatInput({ onSend, disabled, showSurprise = false, lang
       </div>
 
       <p style={{
-        fontFamily: 'JetBrains Mono, monospace', fontSize: 8,
+        fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(7px, 1.5vw, 8px)',
         color: 'rgba(255,255,255,0.15)', textAlign: 'center', letterSpacing: '0.1em',
       }}>
         {L.chatFooter}

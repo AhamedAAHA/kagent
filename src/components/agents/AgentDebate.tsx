@@ -27,14 +27,14 @@ export default function AgentDebate({ debate }: Props) {
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{
-        fontFamily: 'JetBrains Mono, monospace', fontSize: 8,
+        fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(7px, 1.5vw, 8px)',
         color: 'rgba(255,255,255,0.25)', letterSpacing: '0.18em',
-        marginBottom: 10,
+        marginBottom: 'clamp(8px, 2.5vw, 10px)',
       }}>
         ── AGENT DEBATE ──────────────────────────────
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(4px, 1.5vw, 6px)' }}>
         <AnimatePresence>
           {debate.map((msg, i) => {
             const meta = AGENT_META[msg.agentId] ?? { color: '#fff', emoji: '🤖' };
@@ -48,8 +48,8 @@ export default function AgentDebate({ debate }: Props) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08, duration: 0.3 }}
                 style={{
-                  display: 'flex', gap: 10, alignItems: 'flex-start',
-                  padding: isVerdict ? '10px 12px' : '8px 12px',
+                  display: 'flex', gap: 'clamp(8px, 2vw, 10px)', alignItems: 'flex-start',
+                  padding: isVerdict ? 'clamp(8px, 2vw, 10px) clamp(10px, 3vw, 12px)' : 'clamp(6px, 2vw, 8px) clamp(10px, 3vw, 12px)',
                   background: isVerdict
                     ? 'rgba(252,211,77,0.06)'
                     : 'rgba(255,255,255,0.02)',
@@ -60,34 +60,34 @@ export default function AgentDebate({ debate }: Props) {
               >
                 {/* Avatar */}
                 <div style={{
-                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                  width: 'clamp(22px, 6vw, 26px)', height: 'clamp(22px, 6vw, 26px)', borderRadius: '50%', flexShrink: 0,
                   background: `${meta.color}18`,
                   border: `1px solid ${meta.color}35`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12,
+                  fontSize: 'clamp(11px, 2.5vw, 12px)',
                 }}>
                   {meta.emoji}
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(4px, 1.5vw, 6px)', marginBottom: 'clamp(2px, 0.5vw, 3px)' }}>
                     <span style={{
-                      fontFamily: 'JetBrains Mono, monospace', fontSize: 9,
+                      fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(8px, 2vw, 9px)',
                       color: meta.color, fontWeight: 700, letterSpacing: '0.1em',
                     }}>
                       {msg.agentId.toUpperCase()}
                     </span>
                     <span style={{
-                      fontFamily: 'JetBrains Mono, monospace', fontSize: 7,
+                      fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(6px, 1.5vw, 7px)',
                       color: badge.color, letterSpacing: '0.12em',
                       background: `${badge.color}18`, border: `1px solid ${badge.color}40`,
-                      borderRadius: 3, padding: '1px 5px',
+                      borderRadius: 3, padding: 'clamp(1px, 0.5vw, 1px) clamp(3px, 1vw, 5px)',
                     }}>
                       {badge.label}
                     </span>
                   </div>
                   <p style={{
-                    fontFamily: 'Inter, sans-serif', fontSize: 12,
+                    fontFamily: 'Inter, sans-serif', fontSize: 'clamp(11px, 2.5vw, 12px)',
                     color: isVerdict ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.65)',
                     lineHeight: 1.5,
                     fontWeight: isVerdict ? 500 : 400,
