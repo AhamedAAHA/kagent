@@ -134,6 +134,11 @@ body {
     align-self: center;
   }
 
+  .landing-headline {
+    font-size: clamp(2.45rem, 6.2vw, 6.5rem);
+    line-height: 0.9;
+  }
+
   .landing-hero-3d {
     width: min(52vw, 720px) !important;
     height: min(68vh, 500px) !important;
