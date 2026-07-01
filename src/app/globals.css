@@ -182,6 +182,25 @@ body {
   .scroll-line {
     display: none;
   }
+
+  .landing-meta-tl,
+  .landing-meta-tr,
+  .landing-subtitle,
+  .landing-meta-bl {
+    display: none !important;
+  }
+
+  .landing-grid {
+    padding: 72px 16px 180px !important;
+  }
+
+  .landing-cta-row {
+    justify-content: center !important;
+  }
+
+  .landing-headline-wrap {
+    padding-top: 12px !important;
+  }
 }
 
 .headline-slide-viewport {

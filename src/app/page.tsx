@@ -303,11 +303,11 @@ function HomePageInner() {
       </nav>
 
       {/* Interface grid overlay */}
-      <div style={{ position: 'fixed', inset: 0, padding: '100px 40px 200px', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto 1fr auto', zIndex: 10, pointerEvents: 'none', gap: 0 }}>
-        <div className="font-mono-custom" style={{ fontSize: 9, color: 'var(--text-faint)', letterSpacing: '0.18em', alignSelf: 'start' }}>
+      <div className="landing-grid" style={{ position: 'fixed', inset: 0, padding: '100px 40px 200px', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto 1fr auto', zIndex: 10, pointerEvents: 'none', gap: 0 }}>
+        <div className="landing-meta-tl font-mono-custom" style={{ fontSize: 9, color: 'var(--text-faint)', letterSpacing: '0.18em', alignSelf: 'start' }}>
           KAGENT_CORE / LIFE_INTELLIGENCE / v2.0
         </div>
-        <div className="font-mono-custom" style={{ fontSize: 8, color: 'rgba(217,119,6,0.5)', textAlign: 'right', alignSelf: 'start', lineHeight: 1.9 }}>
+        <div className="landing-meta-tr font-mono-custom" style={{ fontSize: 8, color: 'rgba(217,119,6,0.5)', textAlign: 'right', alignSelf: 'start', lineHeight: 1.9 }}>
           <div>6.9271° N / 79.8612° E</div>
           <div>COLOMBO · SRI LANKA · {new Date().getFullYear()}</div>
         </div>
@@ -315,6 +315,7 @@ function HomePageInner() {
         <div className="landing-headline-wrap" style={{ gridColumn: '1 / -1', gridRow: '2', alignSelf: 'center', paddingTop: 28, position: 'relative', zIndex: 12 }}>
           <SlidingHeadline />
           <motion.p
+            className="landing-subtitle"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
             style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.35)', marginTop: 20, maxWidth: 440, lineHeight: 1.6 }}
           >
@@ -322,8 +323,8 @@ function HomePageInner() {
           </motion.p>
         </div>
 
-        <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', pointerEvents: 'auto', gap: 16 }}>
-          <div className="font-mono-custom" style={{ fontSize: 9, color: 'var(--text-faint)', lineHeight: 2.2 }}>
+        <div className="landing-cta-row" style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', pointerEvents: 'auto', gap: 16 }}>
+          <div className="landing-meta-bl font-mono-custom" style={{ fontSize: 9, color: 'var(--text-faint)', lineHeight: 2.2 }}>
             <div>{L.landingMeta(voiceOk)}</div>
             <div>LIFE SITUATION → COMPLETE SOLUTION → CART</div>
           </div>
