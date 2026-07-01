@@ -129,14 +129,9 @@ body {
   .landing-headline-wrap {
     grid-column: 1 !important;
     grid-row: 2;
-    max-width: min(46vw, 500px);
+    max-width: min(52vw, 560px);
     padding-right: 0;
     align-self: center;
-  }
-
-  .landing-headline {
-    font-size: clamp(2.25rem, 3.8vw, 4.75rem);
-    line-height: 0.88;
   }
 
   .landing-hero-3d {
