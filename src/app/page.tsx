@@ -303,8 +303,9 @@ function HomePageInner() {
       </nav>
 
       {/* Interface grid overlay */}
-      <div style={{ position: 'fixed', inset: 0, padding: 'clamp(80px, 15vh, 100px) clamp(16px, 5vw, 40px) 200px', display: 'flex', flexDirection: 'column', zIndex: 10, pointerEvents: 'none', gap: 0, justifyContent: 'space-between' }}>
-        <div>
+      <div style={{ position: 'fixed', inset: 0, padding: 'clamp(80px, 15vh, 100px) clamp(12px, 4vw, 40px) clamp(120px, 30vh, 200px)', display: 'flex', flexDirection: 'column', zIndex: 15, pointerEvents: 'none', gap: 0, justifyContent: 'center' }}>
+        {/* Top meta - hide on small mobile */}
+        <div style={{ display: 'none' }} className="desktop-meta">
           <div className="font-mono-custom" style={{ fontSize: 'clamp(7px, 2vw, 9px)', color: 'var(--text-faint)', letterSpacing: '0.18em', alignSelf: 'start' }}>
             KAGENT_CORE / LIFE_INTELLIGENCE / v2.0
           </div>
@@ -314,28 +315,36 @@ function HomePageInner() {
           </div>
         </div>
 
-        <div className="landing-headline-wrap" style={{ alignSelf: 'center', paddingTop: 'clamp(16px, 5vh, 28px)', position: 'relative', zIndex: 12, width: '100%', maxWidth: '90vw' }}>
-          <SlidingHeadline />
-          <motion.p
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-            style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(12px, 3vw, 14px)', color: 'rgba(255,255,255,0.35)', marginTop: '1em', maxWidth: 'min(100%, 440px)', lineHeight: 1.6 }}
+        {/* Main content */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 'clamp(20px, 8vh, 32px)' }}>
+          <div className="landing-headline-wrap" style={{ alignSelf: 'center', position: 'relative', zIndex: 12, width: '100%', maxWidth: '100%', textAlign: 'center' }}>
+            <SlidingHeadline />
+            <motion.p
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+              style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(13px, 3.5vw, 16px)', color: 'rgba(255,255,255,0.5)', marginTop: 'clamp(16px, 4vh, 20px)', maxWidth: '100%', lineHeight: 1.7, letterSpacing: '0.3px' }}
+            >
+              {L.landingSubtitle}
+            </motion.p>
+          </div>
+
+          {/* CTA Button */}
+          <motion.button
+            onClick={() => setChatOpen(true)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="cta-clip font-syncopate"
+            style={{ background: '#7C3AED', color: '#fff', padding: 'clamp(12px, 3.5vw, 16px) clamp(20px, 6vw, 32px)', fontWeight: 700, fontSize: 'clamp(11px, 2.5vw, 13px)', letterSpacing: '0.08em', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap', borderRadius: '8px', boxShadow: '0 4px 15px rgba(124, 58, 237, 0.3)', transition: 'all 0.2s ease', pointerEvents: 'auto' }}
           >
-            {L.landingSubtitle}
-          </motion.p>
+            {L.startMission} <ArrowRight size={14} strokeWidth={2.5} />
+          </motion.button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(12px, 4vw, 16px)', pointerEvents: 'auto', alignItems: 'flex-start', justifyContent: 'flex-end' }}>
-          <div className="font-mono-custom desktop-meta" style={{ fontSize: 'clamp(7px, 2vw, 9px)', color: 'var(--text-faint)', lineHeight: 2.2, display: 'none', pointerEvents: 'none' }}>
+        {/* Bottom info - hide on small mobile */}
+        <div style={{ display: 'none' }} className="desktop-meta">
+          <div className="font-mono-custom" style={{ fontSize: 'clamp(7px, 2vw, 9px)', color: 'var(--text-faint)', lineHeight: 2.2, pointerEvents: 'none' }}>
             <div>{L.landingMeta(voiceOk)}</div>
             <div>LIFE SITUATION → COMPLETE SOLUTION → CART</div>
           </div>
-          <button
-            onClick={() => setChatOpen(true)}
-            className="cta-clip font-syncopate"
-            style={{ background: 'var(--text)', color: 'var(--bg)', padding: 'clamp(10px, 3vw, 13px) clamp(18px, 5vw, 26px)', fontWeight: 700, fontSize: 'clamp(9px, 2vw, 10px)', letterSpacing: '0.14em', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}
-          >
-            {L.startMission} <ArrowRight size={12} />
-          </button>
         </div>
 
       </div>
@@ -360,13 +369,14 @@ function HomePageInner() {
       </div>
 
       {/* Bottom: quick missions + input */}
-      <div className="landing-bottom" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'linear-gradient(to top, rgba(4,2,12,0.98) 65%, transparent)', padding: 'clamp(28px, 5vw, 44px) clamp(12px, 4vw, 40px) clamp(16px, 3vw, 28px)' }}>
+      <div className="landing-bottom" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'linear-gradient(to top, rgba(4,2,12,0.99) 70%, rgba(4,2,12,0.95) 85%, transparent)', padding: 'clamp(16px, 3vw, 24px) clamp(12px, 4vw, 20px) clamp(12px, 3vw, 20px)', paddingBottom: 'max(clamp(12px, 3vw, 20px), env(safe-area-inset-bottom))' }}>
+        {/* Quick prompts section */}
         <div style={{
-          display: 'flex', flexWrap: 'nowrap', gap: 'clamp(6px, 2vw, 8px)', marginBottom: 'clamp(12px, 3vw, 16px)',
+          display: 'none', flexWrap: 'nowrap', gap: 'clamp(6px, 2vw, 8px)', marginBottom: 'clamp(12px, 3vw, 16px)',
           justifyContent: 'flex-start', overflowX: 'auto', paddingBottom: 4,
-          maxWidth: '100%', margin: '0 0 clamp(12px, 3vw, 16px)',
+          maxWidth: '100%',
           WebkitOverflowScrolling: 'touch',
-        }}>
+        }} className="desktop-only">
           <SurpriseMode onSurprise={msg => handleSend(msg)} variant="chip" />
           {QUICK.map(q => (
             <button key={q.labelEn} type="button" onClick={() => handleSend(q.msg)}
@@ -384,6 +394,7 @@ function HomePageInner() {
             </button>
           ))}
         </div>
+        {/* Chat input */}
         <div style={{ maxWidth: '100%', margin: '0 auto' }}>
           <ChatInput onSend={handleSend} disabled={isLoading} lang={lang} />
         </div>
