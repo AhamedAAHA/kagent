@@ -368,15 +368,14 @@ function HomePageInner() {
           <SurpriseMode onSurprise={msg => handleSend(msg)} variant="chip" />
           {QUICK.map(q => (
             <button key={q.labelEn} type="button" onClick={() => handleSend(q.msg)}
-              className="font-mono-custom glass"
+              className="font-mono-custom glass quick-prompt-chip"
               style={{
                 padding: '6px 13px', borderRadius: 6, fontSize: 8,
                 color: 'rgba(255,255,255,0.45)', letterSpacing: '0.12em',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
                 transition: 'all 0.2s', flexShrink: 0, whiteSpace: 'nowrap',
+                border: '1px solid rgba(255,255,255,0.07)',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#fff'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(124,58,237,0.4)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.45)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.07)'; }}
             >
               <span style={{ fontSize: 12 }}>{q.icon}</span> {quickPromptLabel(q, lang)}
             </button>

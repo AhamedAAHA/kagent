@@ -95,9 +95,12 @@ export default function HalideTopo({
       canvas.style.transform = 'rotateX(55deg) rotateZ(-25deg) scale(1)';
     }, 400);
 
-    window.addEventListener('mousemove', handleMouseMove);
+    const canHover = window.matchMedia('(min-width: 900px) and (hover: hover)').matches;
+    if (canHover) {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      if (canHover) window.removeEventListener('mousemove', handleMouseMove);
       clearTimeout(timeout);
     };
   }, []);
