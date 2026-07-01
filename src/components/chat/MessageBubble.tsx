@@ -101,7 +101,7 @@ export default function MessageBubble({ message, isStreaming, lang = 'en', showP
           )}
 
           {message.bundles && message.bundles.length > 0 && (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="message-bundles" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{
                 fontFamily: 'JetBrains Mono, monospace', fontSize: 8,
                 color: 'rgba(255,255,255,0.25)', letterSpacing: '0.18em',

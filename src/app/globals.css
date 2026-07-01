@@ -288,12 +288,17 @@ body {
   }
 
   .chat-messages {
-    padding: 12px 14px !important;
+    padding: 12px 14px 28px !important;
     gap: 16px !important;
+    scroll-padding-bottom: 24px;
   }
 
   .chat-input-bar {
     padding: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .message-bundles {
+    padding-bottom: 12px;
   }
 
   .hide-mobile {
@@ -344,6 +349,122 @@ body {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 20px 20px 20px 4px;
+}
+
+/* ─── Surprise modal (portaled — above nav on mobile) ─── */
+.surprise-me-chip {
+  display: flex;
+  align-items: center;
+  gap: 5;
+  padding: 6px 13px;
+  border-radius: 6;
+  font-size: 8px;
+  color: #FCD34D;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  background: rgba(252, 211, 77, 0.08);
+  border: 1px solid rgba(252, 211, 77, 0.25);
+  transition: all 0.2s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.surprise-me-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(252, 211, 77, 0.08);
+  border: 1px solid rgba(252, 211, 77, 0.25);
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-family: JetBrains Mono, monospace;
+  font-size: 9px;
+  color: #FCD34D;
+  letter-spacing: 0.12em;
+  transition: all 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .surprise-me-chip:hover,
+  .surprise-me-btn:hover {
+    background: rgba(252, 211, 77, 0.15);
+    color: #FDE68A;
+  }
+
+  .surprise-pack-btn:hover {
+    background: rgba(252, 211, 77, 0.08) !important;
+  }
+}
+
+.surprise-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+}
+
+.surprise-modal-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 201;
+  width: min(380px, 92vw);
+  max-height: min(85dvh, 640px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--surface);
+  border: 1px solid rgba(252, 211, 77, 0.2);
+  border-radius: 18px;
+  padding: 28px 24px;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+}
+
+.surprise-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.surprise-pack-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 72px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.surprise-pack-btn[data-selected='true'] {
+  background: rgba(252, 211, 77, 0.15);
+  border-color: rgba(252, 211, 77, 0.4);
+}
+
+@media (max-width: 899px) {
+  .surprise-me-chip {
+    font-size: 9px !important;
+    padding: 10px 12px !important;
+    min-height: 40px;
+  }
+
+  .surprise-modal-panel {
+    width: min(360px, 94vw);
+    max-height: 80dvh;
+    padding: 22px 18px;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .surprise-pack-btn {
+    min-height: 80px;
+    padding: 14px 10px;
+  }
 }
 
 /* ─── Product card ─── */
