@@ -36,26 +36,26 @@ export default function MessageBubble({ message, isStreaming, lang = 'en', showP
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        style={{ display: 'flex', gap: 10, flexDirection: isUser ? 'row-reverse' : 'row' }}
+        style={{ display: 'flex', gap: 'clamp(8px, 2vw, 10px)', flexDirection: isUser ? 'row-reverse' : 'row' }}
       >
         <div style={{
-          width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+          width: 'clamp(28px, 7vw, 30px)', height: 'clamp(28px, 7vw, 30px)', borderRadius: '50%', flexShrink: 0,
           background: isUser ? 'linear-gradient(135deg,#7C3AED,#5B21B6)' : 'rgba(217,119,6,0.12)',
           border: isUser ? 'none' : '1px solid rgba(217,119,6,0.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'clamp(11px, 2.5vw, 13px)',
         }}>
           {isUser ? '👤' : '⚡'}
         </div>
 
         <div style={{
-          display: 'flex', flexDirection: 'column', gap: 10,
+          display: 'flex', flexDirection: 'column', gap: 'clamp(8px, 2vw, 10px)',
           maxWidth: '92%', alignItems: isUser ? 'flex-end' : 'flex-start', width: isUser ? undefined : '100%',
         }}>
           {(message.content || isStreaming) && (
             <div
               className={isUser ? 'bubble-user' : 'bubble-agent'}
               style={{
-                padding: '10px 16px', fontSize: 13, lineHeight: 1.65,
+                padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 16px)', fontSize: 'clamp(12px, 2.5vw, 13px)', lineHeight: 1.65,
                 color: isUser ? '#fff' : 'rgba(240,238,248,0.9)',
                 fontFamily: lang === 'si' ? 'Inter, "Noto Sans Sinhala", sans-serif' : 'Inter, sans-serif',
                 position: 'relative', maxWidth: hasVisualContent ? '100%' : undefined,
@@ -89,8 +89,8 @@ export default function MessageBubble({ message, isStreaming, lang = 'en', showP
           {products.length > 0 && (
             <div style={{ width: '100%' }}>
               <div style={{
-                fontFamily: 'JetBrains Mono, monospace', fontSize: 8,
-                color: 'rgba(255,255,255,0.25)', letterSpacing: '0.18em', marginBottom: 8,
+                fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(7px, 1.5vw, 8px)',
+                color: 'rgba(255,255,255,0.25)', letterSpacing: '0.18em', marginBottom: 'clamp(6px, 1.5vw, 8px)',
               }}>{L.livePicks}</div>
               <ProductCarousel
                 products={products}
@@ -101,9 +101,9 @@ export default function MessageBubble({ message, isStreaming, lang = 'en', showP
           )}
 
           {message.bundles && message.bundles.length > 0 && (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 'clamp(8px, 2vw, 10px)' }}>
               <div style={{
-                fontFamily: 'JetBrains Mono, monospace', fontSize: 8,
+                fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(7px, 1.5vw, 8px)',
                 color: 'rgba(255,255,255,0.25)', letterSpacing: '0.18em',
               }}>{L.chooseBundle}</div>
               {message.bundles.map((bundle, i) => (
@@ -113,7 +113,7 @@ export default function MessageBubble({ message, isStreaming, lang = 'en', showP
           )}
 
           <div style={{
-            fontFamily: 'JetBrains Mono, monospace', fontSize: 8,
+            fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(7px, 1.5vw, 8px)',
             color: 'rgba(255,255,255,0.15)', letterSpacing: '0.08em',
           }}>
             {message.timestamp.toLocaleTimeString('en-LK', { hour: '2-digit', minute: '2-digit' })}

@@ -163,11 +163,11 @@ export default function CheckoutModal({ open, onClose, lastUserMessage = '' }: P
               position: 'fixed', left: '50%', top: '50%',
               width: 'min(440px, 92vw)', maxHeight: '88vh', overflowY: 'auto',
               background: 'var(--surface)', border: '1px solid var(--border)',
-              borderRadius: 14, zIndex: 70, padding: 20,
+              borderRadius: 14, zIndex: 70, padding: 'clamp(16px, 4vw, 20px)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'clamp(12px, 3vw, 16px)' }}>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(10px, 2.5vw, 11px)', fontWeight: 700, color: '#fff', letterSpacing: '0.12em' }}>
                 {L.title}
               </span>
               <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
@@ -176,30 +176,30 @@ export default function CheckoutModal({ open, onClose, lastUserMessage = '' }: P
             </div>
 
             {session ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(10px, 3vw, 14px)' }}>
+                <p style={{ fontSize: 'clamp(12px, 3vw, 13px)', color: 'rgba(255,255,255,0.8)' }}>
                   Order <strong>{session.orderRef}</strong> created. {L.payKapruka} to complete.
                 </p>
-                <p style={{ fontSize: 22, fontWeight: 800, color: '#A78BFA' }}>{formatPrice(session.grandTotal)}</p>
+                <p style={{ fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 800, color: '#A78BFA' }}>{formatPrice(session.grandTotal)}</p>
                 <a
                   href={session.checkoutUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    background: '#7C3AED', color: '#fff', padding: '12px 16px', borderRadius: 9,
-                    fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700,
+                    background: '#7C3AED', color: '#fff', padding: 'clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px)', borderRadius: 9,
+                    fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(10px, 2vw, 11px)', fontWeight: 700,
                     letterSpacing: '0.1em', textDecoration: 'none',
                   }}
                 >
                   {L.payKapruka} <ExternalLink size={14} />
                 </a>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', lineHeight: 1.5, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+                <p style={{ fontSize: 'clamp(9px, 2vw, 10px)', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5, borderTop: '1px solid var(--border)', paddingTop: 'clamp(8px, 2vw, 10px)' }}>
                   After payment, use your Kapruka email order number (VIMP…) in <strong>Track Kapruka Order</strong> in the cart.
                 </p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(8px, 2vw, 10px)' }}>
                 <Field label={L.recipientName} value={recipientName} onChange={setRecipientName} />
                 <Field label={L.recipientPhone} value={recipientPhone} onChange={setRecipientPhone} placeholder="0771234567" />
                 <Field label={L.address} value={address} onChange={setAddress} />
@@ -222,10 +222,10 @@ export default function CheckoutModal({ open, onClose, lastUserMessage = '' }: P
                 </label>
 
                 {checkingDelivery ? (
-                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>Checking delivery…</p>
+                  <p style={{ fontSize: 'clamp(9px, 2vw, 10px)', color: 'rgba(255,255,255,0.35)' }}>Checking delivery…</p>
                 ) : delivery && (
                   <div style={{
-                    fontSize: 10, padding: 8, borderRadius: 6,
+                    fontSize: 'clamp(9px, 2vw, 10px)', padding: 'clamp(6px, 1.5vw, 8px)', borderRadius: 6,
                     background: delivery.available ? 'rgba(52,211,153,0.08)' : 'rgba(248,113,113,0.08)',
                     border: `1px solid ${delivery.available ? 'rgba(52,211,153,0.25)' : 'rgba(248,113,113,0.25)'}`,
                     color: delivery.available ? '#34D399' : '#F87171',
@@ -242,7 +242,7 @@ export default function CheckoutModal({ open, onClose, lastUserMessage = '' }: P
                           onClick={() => setDeliveryDate(delivery.next_available_date!.slice(0, 10))}
                           style={{
                             display: 'block', marginTop: 6, background: 'none', border: 'none',
-                            color: '#A78BFA', cursor: 'pointer', fontSize: 10, padding: 0,
+                            color: '#A78BFA', cursor: 'pointer', fontSize: 'clamp(9px, 2vw, 10px)', padding: 0,
                             fontFamily: 'JetBrains Mono, monospace',
                           }}
                         >
@@ -253,22 +253,22 @@ export default function CheckoutModal({ open, onClose, lastUserMessage = '' }: P
                   </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(9px, 2vw, 10px)', color: 'rgba(255,255,255,0.4)' }}>
                   <span>Items: {formatPrice(total)}</span>
                   {delivery?.available && delivery.rate != null && (
                     <span style={{ color: '#34D399' }}>+ LKR {delivery.rate.toLocaleString()} delivery</span>
                   )}
                 </div>
 
-                {error && <p style={{ fontSize: 11, color: '#F87171' }}>{error}</p>}
+                {error && <p style={{ fontSize: 'clamp(10px, 2vw, 11px)', color: '#F87171' }}>{error}</p>}
 
                 <button
                   onClick={handleCheckout}
                   disabled={loading || !recipientName || !recipientPhone || !address || !senderName || !deliveryOk}
                   style={{
                     width: '100%', background: loading || !deliveryOk ? 'rgba(124,58,237,0.5)' : '#7C3AED',
-                    border: 'none', borderRadius: 9, color: '#fff', padding: '12px 0',
-                    fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fontWeight: 700,
+                    border: 'none', borderRadius: 9, color: '#fff', padding: 'clamp(10px, 2.5vw, 12px) 0',
+                    fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(9px, 2vw, 10px)', fontWeight: 700,
                     letterSpacing: '0.12em', cursor: loading ? 'wait' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   }}
@@ -286,13 +286,13 @@ export default function CheckoutModal({ open, onClose, lastUserMessage = '' }: P
 
 const labelStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: 4,
-  fontSize: 9, color: 'rgba(255,255,255,0.4)', fontFamily: 'JetBrains Mono, monospace',
+  fontSize: 'clamp(8px, 2vw, 9px)', color: 'rgba(255,255,255,0.4)', fontFamily: 'JetBrains Mono, monospace',
   letterSpacing: '0.08em',
 };
 
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)',
-  borderRadius: 7, padding: '8px 10px', color: '#fff', fontSize: 12,
+  borderRadius: 7, padding: 'clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 10px)', color: '#fff', fontSize: 'clamp(11px, 2.5vw, 12px)',
   fontFamily: 'Inter, sans-serif',
 };
 

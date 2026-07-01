@@ -281,15 +281,15 @@ function HomePageInner() {
       <nav className="landing-nav" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '18px 40px',
+        padding: 'clamp(12px, 4vw, 18px) clamp(16px, 5vw, 40px)',
         borderBottom: '1px solid rgba(255,255,255,0.05)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
       }}>
         <Logo size="md" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(6px, 2vw, 12px)', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <LanguageToggle lang={lang} onChange={setUiLanguage} />
           {upcomingFestival && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.25)', borderRadius: 20, padding: '4px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 8, color: 'rgba(217,119,6,0.85)', letterSpacing: '0.1em' }}>
+            <div style={{ display: 'none', alignItems: 'center', gap: 5, background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.25)', borderRadius: 20, padding: '4px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(7px, 2vw, 8px)', color: 'rgba(217,119,6,0.85)', letterSpacing: '0.1em' }} className="md-festival">
               🎊 {upcomingFestival.name.toUpperCase()} IN {upcomingFestival.daysUntil}D
             </div>
           )}
@@ -303,34 +303,36 @@ function HomePageInner() {
       </nav>
 
       {/* Interface grid overlay */}
-      <div style={{ position: 'fixed', inset: 0, padding: '100px 40px 200px', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto 1fr auto', zIndex: 10, pointerEvents: 'none', gap: 0 }}>
-        <div className="font-mono-custom" style={{ fontSize: 9, color: 'var(--text-faint)', letterSpacing: '0.18em', alignSelf: 'start' }}>
-          KAGENT_CORE / LIFE_INTELLIGENCE / v2.0
-        </div>
-        <div className="font-mono-custom" style={{ fontSize: 8, color: 'rgba(217,119,6,0.5)', textAlign: 'right', alignSelf: 'start', lineHeight: 1.9 }}>
-          <div>6.9271° N / 79.8612° E</div>
-          <div>COLOMBO · SRI LANKA · {new Date().getFullYear()}</div>
+      <div style={{ position: 'fixed', inset: 0, padding: 'clamp(80px, 15vh, 100px) clamp(16px, 5vw, 40px) 200px', display: 'flex', flexDirection: 'column', zIndex: 10, pointerEvents: 'none', gap: 0, justifyContent: 'space-between' }}>
+        <div>
+          <div className="font-mono-custom" style={{ fontSize: 'clamp(7px, 2vw, 9px)', color: 'var(--text-faint)', letterSpacing: '0.18em', alignSelf: 'start' }}>
+            KAGENT_CORE / LIFE_INTELLIGENCE / v2.0
+          </div>
+          <div className="font-mono-custom" style={{ fontSize: 'clamp(7px, 2vw, 8px)', color: 'rgba(217,119,6,0.5)', textAlign: 'right', alignSelf: 'start', lineHeight: 1.9, marginTop: 8 }}>
+            <div>6.9271° N / 79.8612° E</div>
+            <div>COLOMBO · SRI LANKA · {new Date().getFullYear()}</div>
+          </div>
         </div>
 
-        <div className="landing-headline-wrap" style={{ gridColumn: '1 / -1', gridRow: '2', alignSelf: 'center', paddingTop: 28, position: 'relative', zIndex: 12 }}>
+        <div className="landing-headline-wrap" style={{ alignSelf: 'center', paddingTop: 'clamp(16px, 5vh, 28px)', position: 'relative', zIndex: 12, width: '100%', maxWidth: '90vw' }}>
           <SlidingHeadline />
           <motion.p
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-            style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.35)', marginTop: 20, maxWidth: 440, lineHeight: 1.6 }}
+            style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(12px, 3vw, 14px)', color: 'rgba(255,255,255,0.35)', marginTop: '1em', maxWidth: 'min(100%, 440px)', lineHeight: 1.6 }}
           >
             {L.landingSubtitle}
           </motion.p>
         </div>
 
-        <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', pointerEvents: 'auto', gap: 16 }}>
-          <div className="font-mono-custom" style={{ fontSize: 9, color: 'var(--text-faint)', lineHeight: 2.2 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(12px, 4vw, 16px)', pointerEvents: 'auto', alignItems: 'flex-start', justifyContent: 'flex-end' }}>
+          <div className="font-mono-custom desktop-meta" style={{ fontSize: 'clamp(7px, 2vw, 9px)', color: 'var(--text-faint)', lineHeight: 2.2, display: 'none', pointerEvents: 'none' }}>
             <div>{L.landingMeta(voiceOk)}</div>
             <div>LIFE SITUATION → COMPLETE SOLUTION → CART</div>
           </div>
           <button
             onClick={() => setChatOpen(true)}
             className="cta-clip font-syncopate"
-            style={{ background: 'var(--text)', color: 'var(--bg)', padding: '13px 26px', fontWeight: 700, fontSize: 10, letterSpacing: '0.14em', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}
+            style={{ background: 'var(--text)', color: 'var(--bg)', padding: 'clamp(10px, 3vw, 13px) clamp(18px, 5vw, 26px)', fontWeight: 700, fontSize: 'clamp(9px, 2vw, 10px)', letterSpacing: '0.14em', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}
           >
             {L.startMission} <ArrowRight size={12} />
           </button>
@@ -342,10 +344,10 @@ function HomePageInner() {
       <div style={{
         position: 'fixed', inset: 0, zIndex: 2,
         display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-        paddingRight: 'clamp(16px, 4vw, 48px)',
+        paddingRight: 'clamp(8px, 4vw, 48px)',
         pointerEvents: 'none',
       }}>
-        <div style={{ width: 'min(58vw, 820px)', height: 'min(70vh, 520px)', flexShrink: 0 }}>
+        <div style={{ width: 'clamp(200px, 90vw, 820px)', height: 'clamp(200px, 80vw, 520px)', flexShrink: 0, opacity: 'clamp(0.3, 60vw / 1200px, 1)' }}>
           <HalideTopo
             className="w-full h-full"
             mode="landing"
@@ -358,11 +360,11 @@ function HomePageInner() {
       </div>
 
       {/* Bottom: quick missions + input */}
-      <div className="landing-bottom" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'linear-gradient(to top, rgba(4,2,12,0.98) 65%, transparent)', padding: '44px 40px 28px' }}>
+      <div className="landing-bottom" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'linear-gradient(to top, rgba(4,2,12,0.98) 65%, transparent)', padding: 'clamp(28px, 5vw, 44px) clamp(12px, 4vw, 40px) clamp(16px, 3vw, 28px)' }}>
         <div style={{
-          display: 'flex', flexWrap: 'nowrap', gap: 8, marginBottom: 16,
-          justifyContent: 'center', overflowX: 'auto', paddingBottom: 4,
-          maxWidth: 720, margin: '0 auto 16px',
+          display: 'flex', flexWrap: 'nowrap', gap: 'clamp(6px, 2vw, 8px)', marginBottom: 'clamp(12px, 3vw, 16px)',
+          justifyContent: 'flex-start', overflowX: 'auto', paddingBottom: 4,
+          maxWidth: '100%', margin: '0 0 clamp(12px, 3vw, 16px)',
           WebkitOverflowScrolling: 'touch',
         }}>
           <SurpriseMode onSurprise={msg => handleSend(msg)} variant="chip" />
@@ -370,7 +372,7 @@ function HomePageInner() {
             <button key={q.labelEn} type="button" onClick={() => handleSend(q.msg)}
               className="font-mono-custom glass"
               style={{
-                padding: '6px 13px', borderRadius: 6, fontSize: 8,
+                padding: 'clamp(5px, 1.5vw, 6px) clamp(10px, 2.5vw, 13px)', borderRadius: 6, fontSize: 'clamp(7px, 1.5vw, 8px)',
                 color: 'rgba(255,255,255,0.45)', letterSpacing: '0.12em',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
                 transition: 'all 0.2s', flexShrink: 0, whiteSpace: 'nowrap',
@@ -378,11 +380,11 @@ function HomePageInner() {
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#fff'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(124,58,237,0.4)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.45)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.07)'; }}
             >
-              <span style={{ fontSize: 12 }}>{q.icon}</span> {quickPromptLabel(q, lang)}
+              <span style={{ fontSize: 'clamp(10px, 2vw, 12px)' }}>{q.icon}</span> {quickPromptLabel(q, lang)}
             </button>
           ))}
         </div>
-        <div style={{ maxWidth: 580, margin: '0 auto' }}>
+        <div style={{ maxWidth: '100%', margin: '0 auto' }}>
           <ChatInput onSend={handleSend} disabled={isLoading} lang={lang} />
         </div>
       </div>

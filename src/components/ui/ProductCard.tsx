@@ -35,7 +35,7 @@ export default function ProductCard({ product, index = 0, compact, onView, lang 
 
   if (loading) {
     return (
-      <div className="product-card glass" style={{ borderRadius: 10, padding: compact ? 8 : 10, minWidth: 160 }}>
+      <div className="product-card glass" style={{ borderRadius: 10, padding: 'clamp(6px, 2vw, 10px)', minWidth: 'clamp(140px, 30vw, 160px)' }}>
         <ProductImageSkeleton height={compact ? 88 : 96} />
       </div>
     );
@@ -47,13 +47,13 @@ export default function ProductCard({ product, index = 0, compact, onView, lang 
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       className="product-card glass"
-      style={{ borderRadius: 10, padding: compact ? 8 : 10, display: 'flex', flexDirection: 'column', gap: 8, height: '100%' }}
+      style={{ borderRadius: 10, padding: 'clamp(6px, 2vw, 10px)', display: 'flex', flexDirection: 'column', gap: 'clamp(6px, 2vw, 8px)', height: '100%' }}
     >
       <button
         type="button"
         onClick={() => onView?.(product)}
         style={{
-          height: compact ? 88 : 96, borderRadius: 7, overflow: 'hidden',
+          height: 'clamp(80px, 20vw, 96px)', borderRadius: 7, overflow: 'hidden',
           background: 'rgba(124,58,237,0.06)',
           border: '1px solid rgba(124,58,237,0.1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -103,28 +103,28 @@ export default function ProductCard({ product, index = 0, compact, onView, lang 
       </button>
 
       <div>
-        <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.85)', lineHeight: 1.4,
+        <p style={{ fontSize: 'clamp(10px, 2.5vw, 11px)', fontWeight: 500, color: 'rgba(255,255,255,0.85)', lineHeight: 1.4,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {product.name}
         </p>
-        <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 2, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.05em' }}>
+        <p style={{ fontSize: 'clamp(8px, 2vw, 9px)', color: 'rgba(255,255,255,0.3)', marginTop: 2, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.05em' }}>
           {product.vendor}
         </p>
       </div>
 
       {!compact && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Star size={10} style={{ fill: '#FCD34D', color: '#FCD34D' }} />
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{product.rating}</span>
-          <span style={{ fontSize: 9, color: 'rgba(52,211,153,0.7)', marginLeft: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(4px, 1vw, 6px)' }}>
+          <Star size={10} style={{ fill: '#FCD34D', color: '#FCD34D', flexShrink: 0 }} />
+          <span style={{ fontSize: 'clamp(9px, 2vw, 10px)', color: 'rgba(255,255,255,0.5)' }}>{product.rating}</span>
+          <span style={{ fontSize: 'clamp(8px, 2vw, 9px)', color: 'rgba(52,211,153,0.7)', marginLeft: 'auto' }}>
             {product.deliveryDays <= 1 ? L.sameDay : `${product.deliveryDays}d`}
           </span>
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginTop: 'auto' }}>
-        <span style={{ fontSize: compact ? 12 : 13, fontWeight: 700, color: '#fff' }}>{formatPrice(product.price)}</span>
-        <div style={{ display: 'flex', gap: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(4px, 1vw, 6px)', marginTop: 'auto' }}>
+        <span style={{ fontSize: 'clamp(11px, 2.5vw, 13px)', fontWeight: 700, color: '#fff' }}>{formatPrice(product.price)}</span>
+        <div style={{ display: 'flex', gap: 'clamp(3px, 1vw, 4px)' }}>
           {onView && (
             <button
               type="button"
@@ -133,7 +133,7 @@ export default function ProductCard({ product, index = 0, compact, onView, lang 
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)',
-                color: 'rgba(255,255,255,0.5)', padding: '4px 6px', borderRadius: 6, cursor: 'pointer',
+                color: 'rgba(255,255,255,0.5)', padding: 'clamp(3px, 1vw, 4px) clamp(4px, 1.5vw, 6px)', borderRadius: 6, cursor: 'pointer',
               }}
             >
               <Eye size={10} />
@@ -143,9 +143,9 @@ export default function ProductCard({ product, index = 0, compact, onView, lang 
             type="button"
             onClick={() => addToCart({ product, quantity: 1 })}
             style={{
-              display: 'flex', alignItems: 'center', gap: 4,
+              display: 'flex', alignItems: 'center', gap: 'clamp(2px, 0.5vw, 4px)',
               background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.35)',
-              color: '#A78BFA', fontSize: 10, padding: '4px 8px', borderRadius: 6,
+              color: '#A78BFA', fontSize: 'clamp(9px, 2vw, 10px)', padding: 'clamp(3px, 1vw, 4px) clamp(5px, 1.5vw, 8px)', borderRadius: 6,
               cursor: 'pointer', fontFamily: 'JetBrains Mono, monospace',
             }}
           >

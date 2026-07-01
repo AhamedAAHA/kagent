@@ -58,11 +58,11 @@ export default function ProductDetailModal({ product, onClose, lang = 'en' }: Pr
             exit={{ opacity: 0, scale: 0.96, x: '-50%', y: '-48%' }}
             style={{
               position: 'fixed', left: '50%', top: '50%', zIndex: 90,
-              width: 'min(400px, 92vw)', maxHeight: '90vh', overflowY: 'auto',
+              width: 'clamp(280px, 92vw, 400px)', maxHeight: 'clamp(70vh, 90vh, 92vh)', overflowY: 'auto',
               background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
             }}
           >
-            <div style={{ position: 'relative', height: 220, background: 'rgba(124,58,237,0.08)' }}>
+            <div style={{ position: 'relative', height: 'clamp(160px, 40vw, 220px)', background: 'rgba(124,58,237,0.08)' }}>
               {loading && !imageUrl ? (
                 <ProductImageSkeleton height={220} />
               ) : imageUrl ? (
@@ -89,14 +89,14 @@ export default function ProductDetailModal({ product, onClose, lang = 'en' }: Pr
                 </div>
               )}
             </div>
-            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ padding: 'clamp(12px, 3vw, 16px)', display: 'flex', flexDirection: 'column', gap: 'clamp(8px, 2vw, 10px)' }}>
               <span style={{
-                fontFamily: 'JetBrains Mono, monospace', fontSize: 8, color: '#A78BFA',
+                fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(7px, 2vw, 8px)', color: '#A78BFA',
                 letterSpacing: '0.12em',
               }}>{L.kaprukaLive}</span>
-              <h3 style={{ fontSize: 15, fontWeight: 600, color: '#fff', lineHeight: 1.4 }}>{p.name}</h3>
-              <p style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>{formatPrice(p.price)}</p>
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>
+              <h3 style={{ fontSize: 'clamp(13px, 4vw, 15px)', fontWeight: 600, color: '#fff', lineHeight: 1.4 }}>{p.name}</h3>
+              <p style={{ fontSize: 'clamp(16px, 5vw, 20px)', fontWeight: 800, color: '#fff' }}>{formatPrice(p.price)}</p>
+              <p style={{ fontSize: 'clamp(9px, 2vw, 10px)', color: 'rgba(255,255,255,0.4)' }}>
                 {p.inStock ? `✓ ${L.inStock}` : 'Out of stock'} · {p.deliveryDays <= 1 ? L.sameDay : `${p.deliveryDays}-day delivery`}
               </p>
               {error && <p style={{ fontSize: 10, color: '#F87171' }}>{error}</p>}

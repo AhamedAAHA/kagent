@@ -34,23 +34,24 @@ export default function AgentTerminal({ onClose, closeLabel = 'Close' }: Props) 
       background: '#020208',
       border: '1px solid rgba(255,255,255,0.07)',
       borderRadius: 12, overflow: 'hidden',
-      height: '100%', minHeight: 320,
+      height: '100%', minHeight: 'clamp(280px, 50vh, 320px)',
     }}>
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '8px 14px',
+        display: 'flex', alignItems: 'center', gap: 'clamp(6px, 2vw, 8px)',
+        padding: 'clamp(6px, 1.5vw, 8px) clamp(10px, 3vw, 14px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         background: 'rgba(255,255,255,0.02)',
         flexShrink: 0,
+        flexWrap: 'wrap',
       }}>
-        <div style={{ display: 'flex', gap: 5 }}>
+        <div style={{ display: 'flex', gap: 'clamp(3px, 1vw, 5px)' }}>
           {['#F87171','#FCD34D','#34D399'].map(c => (
             <div key={c} style={{ width: 9, height: 9, borderRadius: '50%', background: c, opacity: 0.7 }} />
           ))}
         </div>
         <Terminal size={11} style={{ color: 'rgba(255,255,255,0.25)', marginLeft: 4 }} />
         <span style={{
-          fontFamily: 'JetBrains Mono, monospace', fontSize: 9,
+          fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(8px, 1.5vw, 9px)',
           color: 'rgba(255,255,255,0.25)', letterSpacing: '0.15em',
         }}>KAGENT — LIVE AGENT STREAM</span>
         {isLoading && (
@@ -85,8 +86,8 @@ export default function AgentTerminal({ onClose, closeLabel = 'Close' }: Props) 
       </div>
 
       <div style={{
-        flex: 1, overflowY: 'auto', padding: '12px 14px',
-        fontFamily: 'JetBrains Mono, monospace', fontSize: 11,
+        flex: 1, overflowY: 'auto', padding: 'clamp(10px, 2.5vw, 12px) clamp(10px, 3vw, 14px)',
+        fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(10px, 2.5vw, 11px)',
         lineHeight: 1.7,
       }}>
         {terminalLines.length === 0 ? (
@@ -114,12 +115,12 @@ export default function AgentTerminal({ onClose, closeLabel = 'Close' }: Props) 
                   transition={{ duration: 0.15 }}
                   style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 2 }}
                 >
-                  <span style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0, fontSize: 10 }}>
+                  <span style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0, fontSize: 'clamp(9px, 2vw, 10px)' }}>
                     {new Date(line.ts).toLocaleTimeString('en-LK', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </span>
                   <span style={{
-                    color, flexShrink: 0, fontSize: 9, fontWeight: 700,
-                    letterSpacing: '0.1em', minWidth: 80, paddingTop: 1,
+                    color, flexShrink: 0, fontSize: 'clamp(8px, 2vw, 9px)', fontWeight: 700,
+                    letterSpacing: '0.1em', minWidth: 'clamp(60px, 15vw, 80px)', paddingTop: 1,
                     textTransform: 'uppercase',
                   }}>
                     [{line.agentId.slice(0, 8)}]
