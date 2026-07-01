@@ -380,6 +380,8 @@ body {
   
   /* Show all elements on desktop */
   .desktop-only { display: block !important; }
+  .desktop-nav-item { display: flex !important; }
+  .md-festival { display: flex !important; }
   
   /* Smoother hover effects on desktop */
   button:hover:not(:disabled) { transform: translateY(-2px); }

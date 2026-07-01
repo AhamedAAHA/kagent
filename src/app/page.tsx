@@ -281,22 +281,27 @@ function HomePageInner() {
       <nav className="landing-nav" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: 'clamp(12px, 4vw, 18px) clamp(16px, 5vw, 40px)',
+        padding: 'clamp(12px, 4vw, 18px) clamp(12px, 4vw, 40px)',
         borderBottom: '1px solid rgba(255,255,255,0.05)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
       }}>
         <Logo size="md" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(6px, 2vw, 12px)', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <LanguageToggle lang={lang} onChange={setUiLanguage} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(8px, 2vw, 16px)' }}>
+          {/* Hide language toggle on mobile, show on desktop */}
+          <div style={{ display: 'none' }} className="desktop-nav-item">
+            <LanguageToggle lang={lang} onChange={setUiLanguage} />
+          </div>
+          {/* Festival badge - hide on mobile */}
           {upcomingFestival && (
             <div style={{ display: 'none', alignItems: 'center', gap: 5, background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.25)', borderRadius: 20, padding: '4px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(7px, 2vw, 8px)', color: 'rgba(217,119,6,0.85)', letterSpacing: '0.1em' }} className="md-festival">
               🎊 {upcomingFestival.name.toUpperCase()} IN {upcomingFestival.daysUntil}D
             </div>
           )}
-          <button onClick={() => setCartOpen(true)} style={{ position: 'relative', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9, padding: '7px 9px', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex' }}>
-            <ShoppingCart size={15} />
+          {/* Cart button */}
+          <button onClick={() => setCartOpen(true)} style={{ position: 'relative', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9, padding: 'clamp(6px, 1.5vw, 9px) clamp(6px, 1.5vw, 9px)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '44px', minHeight: '44px' }}>
+            <ShoppingCart size={16} />
             {cartCount > 0 && (
-              <span style={{ position: 'absolute', top: -5, right: -5, background: '#7C3AED', color: '#fff', fontSize: 9, fontWeight: 700, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cartCount}</span>
+              <span style={{ position: 'absolute', top: -5, right: -5, background: '#7C3AED', color: '#fff', fontSize: 9, fontWeight: 700, width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cartCount}</span>
             )}
           </button>
         </div>
