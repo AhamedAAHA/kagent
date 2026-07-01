@@ -74,6 +74,10 @@ export default function HalideTopo({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Disable interactive effects on mobile for performance
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       const x = (window.innerWidth / 2 - e.pageX) / 30;
       const y = (window.innerHeight / 2 - e.pageY) / 30;
