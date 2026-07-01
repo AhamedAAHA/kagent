@@ -124,10 +124,28 @@ body {
   white-space: nowrap;
 }
 
+/* ─── Desktop meta and festival badges ─── */
+.desktop-meta {
+  display: none !important;
+}
+
+.md-festival {
+  display: flex !important;
+}
+
+@media (min-width: 768px) {
+  .desktop-meta {
+    display: flex !important;
+  }
+
+  .md-festival {
+    display: flex !important;
+  }
+}
+
 @media (max-width: 899px) {
   .landing-headline-wrap {
     padding-right: 0;
-    grid-column: 1 / -1 !important;
     max-width: 100%;
   }
 
