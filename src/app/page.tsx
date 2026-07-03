@@ -21,7 +21,9 @@ import ShopperDNACard from '@/components/ui/ShopperDNACard';
 import SurpriseMode from '@/components/ui/SurpriseMode';
 import Logo, { LogoMark } from '@/components/ui/Logo';
 import SlidingHeadline from '@/components/landing/SlidingHeadline';
+import MobileLandingSections from '@/components/landing/MobileLandingSections';
 import LanguageToggle from '@/components/ui/LanguageToggle';
+import { useMobileGsap } from '@/hooks/useMobileGsap';
 import MobileAgentStrip from '@/components/agents/MobileAgentStrip';
 import { QUICK_PROMPTS, uiLabels, errorMessage, quickPromptLabel } from '@/lib/ui-strings';
 import { detectUserLanguage } from '@/lib/language';
@@ -55,6 +57,7 @@ function HomePageInner() {
   const [lastUserMessage, setLastUserMessage] = useState('');
   const [voiceOk, setVoiceOk] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const landingRef = useRef<HTMLDivElement>(null);
   const streamingIdRef = useRef<string | null>(null);
 
   const {
@@ -102,6 +105,8 @@ function HomePageInner() {
   }, [chatOpen, cartTotal, cartCount]);
 
   const activeAgents = agents.filter(a => a.status === 'thinking').length;
+
+  useMobileGsap(landingRef);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -267,7 +272,7 @@ function HomePageInner() {
 
   /* ── LANDING ─────────────────────────────────────────────────────────── */
   if (!chatOpen) return (
-    <div className="landing-root" style={{ background: 'var(--bg)', minHeight: '100vh', overflow: 'hidden' }}>
+    <div ref={landingRef} className="landing-root" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       {/* Grain */}
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
         <filter id="grain">
@@ -276,6 +281,10 @@ function HomePageInner() {
         </filter>
       </svg>
       <div className="grain-overlay" />
+
+      <div className="scroll-progress-wrap show-mobile-only" aria-hidden="true">
+        <div className="scroll-progress-bar" />
+      </div>
 
       {/* Nav */}
       <nav className="landing-nav" style={{
@@ -387,6 +396,14 @@ function HomePageInner() {
           <ChatInput onSend={handleSend} disabled={isLoading} lang={lang} />
         </div>
       </div>
+
+      <MobileLandingSections
+        lang={lang}
+        L={L}
+        agents={agents}
+        onTryPrompt={handleSend}
+        onStartMission={() => setChatOpen(true)}
+      />
 
       <div style={{ position: 'fixed', bottom: 140, left: '50%', transform: 'translateX(-50%)', zIndex: 5, width: 1, height: 48, background: 'linear-gradient(to bottom, rgba(124,58,237,0.5), transparent)' }} className="scroll-line" />
       <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} lastUserMessage={lastUserMessage} lang={lang} />

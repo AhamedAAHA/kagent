@@ -76,6 +76,24 @@ export function uiLabels(lang: UserLanguage) {
       landingMeta: (voice: boolean) => voice
         ? '[ 7 AGENTS · STREAMING · VOICE ON ]'
         : '[ 7 AGENTS · STREAMING · VOICE: CHROME ]',
+      mobileScrollHint: '↓ scroll කරන්න',
+      mobileHowItWorks: 'ක්‍රමය',
+      mobileHowTitle: 'කෙසේද ක්‍රියා කරන්නේ',
+      mobileStep1Title: 'ඔබේ අවස්ථාව කියන්න',
+      mobileStep1Desc: 'උපන්දින, Avurudu, නව ගෙදර — සිංහල හෝ Tanglish.',
+      mobileStep2Title: '7 agents plan එක හදනවා',
+      mobileStep2Desc: 'Live Kapruka catalog එකෙන් Budget, Recommended, Complete bundles.',
+      mobileStep3Title: 'Cart එකට add · checkout',
+      mobileStep3Desc: 'Kapruka.com වෙත ගෙවීම — order track කරන්න පුළුවන්.',
+      mobileAgentsTitle: '7 AI AGENTS',
+      mobileAgentsSub: 'ඔබේ life situation එකට special agents swarm එකක්.',
+      mobileTryLabel: 'උදාහරණ',
+      mobileTryTitle: 'TRY THESE',
+      mobileTrySub: 'Tap කර mission එක අරඹන්න — Tanglish OK.',
+      mobileLangLabel: 'භාෂා',
+      mobileLangNote: 'English · සිංහල · Tanglish — ඔබ කතා කරන භාෂාවෙන්.',
+      mobileTrackDesc: 'VIMP order number එක chat එකට type කරන්න.',
+      mobileFooter: 'KAPRUKA MCP · LIVE CATALOG · SRI LANKA',
     };
   }
 
@@ -138,6 +156,24 @@ export function uiLabels(lang: UserLanguage) {
       landingMeta: (voice: boolean) => voice
         ? '[ 7 AGENTS · STREAMING · VOICE ON ]'
         : '[ 7 AGENTS · STREAMING · VOICE: CHROME ]',
+      mobileScrollHint: '↓ scroll karanna',
+      mobileHowItWorks: 'PROCESS',
+      mobileHowTitle: 'MEKA WEDA KARANNE KOHOMADA',
+      mobileStep1Title: 'Oya situation eka kiyanna',
+      mobileStep1Desc: 'Birthday, Avurudu, new home — Sinhala or Tanglish.',
+      mobileStep2Title: '7 agents plan ekak hadanawa',
+      mobileStep2Desc: 'Live Kapruka catalog eken Budget, Recommended, Complete bundles.',
+      mobileStep3Title: 'Cart ekata add · checkout',
+      mobileStep3Desc: 'Kapruka.com ekata pay karanna — order track karanna puluwan.',
+      mobileAgentsTitle: '7 AI AGENTS',
+      mobileAgentsSub: 'Oya life situation ekata specialized agent swarm ekak.',
+      mobileTryLabel: 'EXAMPLES',
+      mobileTryTitle: 'ME TRY KARANNA',
+      mobileTrySub: 'Tap karanna — mission arambanna. Tanglish OK.',
+      mobileLangLabel: 'LANGUAGES',
+      mobileLangNote: 'English · Sinhala · Tanglish — oya katha karana bashaven.',
+      mobileTrackDesc: 'VIMP order number eka chat ekata type karanna.',
+      mobileFooter: 'KAPRUKA MCP · LIVE CATALOG · SRI LANKA',
     };
   }
 
@@ -199,6 +235,24 @@ export function uiLabels(lang: UserLanguage) {
     landingMeta: (voice: boolean) => voice
       ? '[ 7 AGENTS · STREAMING · VOICE ON ]'
       : '[ 7 AGENTS · STREAMING · VOICE: CHROME ]',
+    mobileScrollHint: '↓ scroll for more',
+    mobileHowItWorks: 'PROCESS',
+    mobileHowTitle: 'HOW IT WORKS',
+    mobileStep1Title: 'Tell your situation',
+    mobileStep1Desc: 'Birthday, Avurudu, new home — in English, Sinhala, or Tanglish.',
+    mobileStep2Title: '7 agents build your plan',
+    mobileStep2Desc: 'Live Kapruka catalog with Budget, Recommended, and Complete bundles.',
+    mobileStep3Title: 'Add to cart · checkout',
+    mobileStep3Desc: 'Pay on Kapruka.com — track your order anytime.',
+    mobileAgentsTitle: '7 AI AGENTS',
+    mobileAgentsSub: 'A specialised swarm for your life situation.',
+    mobileTryLabel: 'EXAMPLES',
+    mobileTryTitle: 'TRY THESE',
+    mobileTrySub: 'Tap to start a mission — Tanglish works perfectly.',
+    mobileLangLabel: 'LANGUAGES',
+    mobileLangNote: 'English · Sinhala · Tanglish — speak naturally.',
+    mobileTrackDesc: 'Type your VIMP order number in chat to track delivery.',
+    mobileFooter: 'KAPRUKA MCP · LIVE CATALOG · SRI LANKA',
   };
 }
 
